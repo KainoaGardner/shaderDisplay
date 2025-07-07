@@ -1,0 +1,15 @@
+.canvas {
+  width: 600px;
+  height: 600px;
+  background-color: #111;
+}
+
+#ui {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  color: #ecf0f1;
+  font-family: sans-serif;
+  text-align: center;
+}

@@ -1,0 +1,61 @@
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #111;
+  font-family: sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  /* height: 100vh; */
+  overflow: hidden;
+}
+
+/* Container for both iframes */
+iframe {
+  border: none;
+  display: block;
+  max-width: 100%;
+}
+
+/* Shader (canvas) iframe on top */
+#shaderFrame {
+  width: 600px;
+  height: 600px;
+  z-index: 1;
+  position: relative;
+  overflow: hidden;
+  border: none;
+  display: block;
+
+}
+
+#uiFrame {
+  width: 600px;
+  height: 100%;
+  background-color: #222;
+}
+
+/* Navigation arrows */
+#prevArrow,
+#nextArrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 2rem;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  cursor: pointer;
+  z-index: 10;
+}
+
+#prevArrow {
+  left: calc(50% - 400px - 40px);
+  /* 800px / 2 + offset */
+}
+
+#nextArrow {
+  right: calc(50% - 400px - 40px);
+}
