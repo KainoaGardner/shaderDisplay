@@ -1,3 +1,4 @@
+import { mat4, vec3, vec2 } from "gl-matrix"
 
 export class Shader {
   program: WebGLProgram;
@@ -81,6 +82,24 @@ export class Shader {
     gl.uniform3f(uniformLocation, x, y, z);
   }
 
+  setVec3fv(gl: WebGL2RenderingContext, name: string, data: vec3) {
+    const uniformLocation = gl.getUniformLocation(this.program, name)
+    if (uniformLocation === null) {
+      console.error(`could not get ${name} uniform location`)
+      return;
+    }
+    gl.uniform3fv(uniformLocation, data);
+  }
+
+  setMat4fv(gl: WebGL2RenderingContext, name: string, data: mat4) {
+    const uniformLocation = gl.getUniformLocation(this.program, name)
+    if (uniformLocation === null) {
+      console.error(`could not get ${name} uniform location`)
+      return;
+    }
+    gl.uniformMatrix4fv(uniformLocation, false, data);
+  }
+
 }
 
 
@@ -110,6 +129,27 @@ export function createEBO(gl: WebGL2RenderingContext, data: Uint16Array) {
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 
   return buffer;
+}
+
+export function createScreenFrameBuffer(gl: WebGL2RenderingContext, width: number, height: number) {
+  const screenFramebuffer = gl.createFramebuffer();
+  gl.bindFramebuffer(gl.FRAMEBUFFER, screenFramebuffer)
+
+  const screenTexture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, screenTexture)
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, width, height, 0, gl.RGB, gl.UNSIGNED_BYTE, null)
+
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, screenTexture, 0)
+
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+  return { screenFramebuffer, screenTexture }
 }
 
 

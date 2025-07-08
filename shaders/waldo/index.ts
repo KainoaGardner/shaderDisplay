@@ -71,7 +71,7 @@ function mainCanvas() {
   }
 
 
-  const vao = Geometry.createSquareTextureGeometry(gl,
+  const vao = Geometry.createPosTexGeometry(gl,
     Geometry.SQUARE_VERTICES,
     Geometry.SQUARE_INDICES,
     Geometry.SQUARE_INDICES.length / 3,

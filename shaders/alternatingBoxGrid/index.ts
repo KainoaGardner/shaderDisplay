@@ -53,7 +53,7 @@ function mainCanvas() {
     return null
   }
 
-  const vao = Geometry.createSquareGeometry(gl, Geometry.SQUARE_VERTICES, Geometry.SQUARE_INDICES, Geometry.SQUARE_INDICES.length / 3, aPositionAttribute);
+  const vao = Geometry.createPosGeometry(gl, Geometry.SQUARE_VERTICES, Geometry.SQUARE_INDICES, Geometry.SQUARE_INDICES.length / 3, aPositionAttribute);
   if (!vao) {
     console.error("could not make vao")
     return null

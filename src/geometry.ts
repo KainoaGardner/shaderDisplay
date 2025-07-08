@@ -25,7 +25,49 @@ export const TEXTURE_INDICES = new Uint16Array([
 ]);
 
 
-export function createSquareGeometry(
+export const CUBE_VERTICES = new Float32Array([
+  // front back
+  -0.5, -0.5, -0.5,
+  0.5, -0.5, -0.5,
+  0.5, 0.5, -0.5,
+  -0.5, 0.5, -0.5,
+  -0.5, -0.5, 0.5,
+  0.5, -0.5, 0.5,
+  0.5, 0.5, 0.5,
+  -0.5, 0.5, 0.5,
+
+  // up down
+  -0.5, 0.5, -0.5,
+  -0.5, -0.5, -0.5,
+  -0.5, -0.5, 0.5,
+  -0.5, 0.5, 0.5,
+  0.5, -0.5, -0.5,
+  0.5, 0.5, -0.5,
+  0.5, 0.5, 0.5,
+  0.5, -0.5, 0.5,
+
+  // left right
+  -0.5, -0.5, -0.5,
+  0.5, -0.5, -0.5,
+  0.5, -0.5, 0.5,
+  -0.5, -0.5, 0.5,
+  0.5, 0.5, -0.5,
+  -0.5, 0.5, -0.5,
+  -0.5, 0.5, 0.5,
+  0.5, 0.5, 0.5,
+]);
+
+
+export const CUBE_INDICES = new Uint16Array([
+  // front and back
+  0, 3, 2, 2, 1, 0, 4, 5, 6, 6, 7, 4,
+  // left and right
+  11, 8, 9, 9, 10, 11, 12, 13, 14, 14, 15, 12,
+  // bottom and top
+  16, 17, 18, 18, 19, 16, 20, 21, 22, 22, 23, 20]);
+
+
+export function createPosGeometry(
   gl: WebGL2RenderingContext,
   vertexData: Float32Array,
   vertexElementData: Uint16Array,
@@ -59,7 +101,7 @@ export function createSquareGeometry(
   return vao;
 }
 
-export function createSquareTextureGeometry(
+export function createPosTexGeometry(
   gl: WebGL2RenderingContext,
   vertexData: Float32Array,
   vertexElementData: Uint16Array,
