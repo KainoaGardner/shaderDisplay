@@ -1,15 +1,40 @@
 .canvas {
   width: 600px;
   height: 600px;
-  background-color: #111;
+  background-color: #000;
 }
 
 #ui {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   height: 100%;
   color: #ecf0f1;
   font-family: sans-serif;
   text-align: center;
+}
+
+button {
+  font-size: 1.2em;
+  padding: 10px 20px;
+  margin: 0px 0px;
+  border: none;
+  border-radius: 6px;
+  background: #111;
+  color: white;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+#loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 28px;
+  color: white;
+  font-family: sans-serif;
+  pointer-events: none;
+  z-index: 10;
 }

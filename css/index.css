@@ -34,6 +34,11 @@ iframe {
   width: 600px;
   height: 100%;
   background-color: #222;
+  position: relative;
+  overflow: hidden;
+  border: none;
+  display: block;
+
 }
 
 /* Navigation arrows */

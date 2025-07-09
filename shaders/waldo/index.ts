@@ -99,7 +99,7 @@ function mainCanvas() {
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images[0])
 
   gl.useProgram(shader.program)
-  shader.set1f(gl, "uImage", 0)
+  shader.set1i(gl, "uImage", 0)
 
   const frame = function() {
     canvas.height = canvas.clientHeight;

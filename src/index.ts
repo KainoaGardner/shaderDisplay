@@ -6,7 +6,8 @@ const shaders = [
   "sierpinskiCarpet",
   "alternatingBoxGrid",
   "colorPicker",
-  "unscreenshotable"
+  "unscreenshotable",
+  "motionExtraction"
 ]
 
 const shaderFrame = document.getElementById("shaderFrame") as HTMLIFrameElement
