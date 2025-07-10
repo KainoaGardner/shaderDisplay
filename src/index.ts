@@ -7,7 +7,8 @@ const shaders = [
   "alternatingBoxGrid",
   "colorPicker",
   "unscreenshotable",
-  "motionExtraction"
+  "motionExtraction",
+  "rayMarching0"
 ]
 
 const shaderFrame = document.getElementById("shaderFrame") as HTMLIFrameElement
