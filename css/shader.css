@@ -38,3 +38,24 @@ button {
   pointer-events: none;
   z-index: 10;
 }
+
+h1 {
+  margin: 10px 0px;
+}
+
+h2 {
+  margin: 0px 0px;
+}
+
+.buttons {
+  display: flex;
+}
+
+.copyButton {
+  padding: 5px 5px;
+  margin: 0px 5px;
+}
+
+button:active {
+  background: #000;
+}

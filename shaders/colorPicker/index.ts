@@ -3,6 +3,26 @@ import { Geometry } from "../../src/geometry"
 import fragmentSource from "./fragment.frag?raw"
 import vertexSource from "./vertex.vert?raw"
 
+function componentToHex(c: number) {
+  var hex = c.toString(16)
+  return hex.length == 1 ? "0" + hex : hex;
+}
+
+function RGBToHEX(r: number, g: number, b: number) {
+  return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b)
+}
+
+function sendColorToUi(color: string) {
+  const frames = window.parent.frames;
+  for (let i = 0; i < frames.length; i++) {
+    try {
+      frames[i].postMessage({ type: "color", value: color }, "*")
+    } catch (e) {
+
+    }
+  }
+}
+
 function main() {
   if (location.hash === "#ui") {
     const canvas = document.getElementById("canvas") as HTMLCanvasElement;
@@ -28,6 +48,7 @@ function main() {
 
 let startTime = performance.now();
 const mousePos = { x: 0, y: 0 }
+let mousePressed = false
 function mainCanvas() {
   const canvas = document.getElementById("canvas") as HTMLCanvasElement;
   if (!canvas) {
@@ -35,15 +56,33 @@ function mainCanvas() {
     return
   }
 
+  document.addEventListener("mousedown", function(event) {
+    mousePressed = true
+
+    const rect0 = canvas.getBoundingClientRect()
+    const mousePosX0 = event.clientX - rect0.left;
+    const mousePosY0 = canvas.height - event.clientY + rect0.top;
+    mousePos.x = mousePosX0
+    mousePos.y = mousePosY0
+
+  });
+  document.addEventListener("mouseup", function(event) {
+    mousePressed = false
+  });
+
+
   document.addEventListener("mousemove", function(event) {
     const rect0 = canvas.getBoundingClientRect()
     const mousePosX0 = event.clientX - rect0.left;
     const mousePosY0 = canvas.height - event.clientY + rect0.top;
 
-
-    mousePos.x = mousePosX0
-    mousePos.y = mousePosY0
+    if (mousePressed) {
+      mousePos.x = mousePosX0
+      mousePos.y = mousePosY0
+    }
   });
+
+
 
   const gl = canvas.getContext("webgl2")
   if (!gl) {
@@ -87,13 +126,48 @@ function mainCanvas() {
     gl.drawElements(gl.TRIANGLES, Geometry.SQUARE_INDICES.length, gl.UNSIGNED_SHORT, 0);
     gl.bindVertexArray(null)
 
+    if (mousePressed) {
+      const pixelData = new Uint8Array(4);
+      gl.readPixels(mousePos.x, mousePos.y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixelData)
+      const hexString = RGBToHEX(pixelData[0], pixelData[1], pixelData[2])
+      sendColorToUi(hexString)
+
+
+    }
+
+
     requestAnimationFrame(frame);
   }
 
   requestAnimationFrame(frame);
 }
 
+let color = ""
 function mainUI() {
+  const colorText = document.getElementById("colorText") as HTMLElement;
+  if (!colorText) {
+    console.error("cant find colorText");
+    return
+  }
+  const copyButton = document.getElementById("copy") as HTMLElement;
+  if (!copyButton) {
+    console.error("cant find copy button");
+    return
+  }
+
+
+  copyButton.addEventListener("click", function() {
+    navigator.clipboard.writeText(color)
+  })
+
+  window.addEventListener("message", (event) => {
+    if (event.data?.type === "color") {
+      color = event.data.value
+      colorText.textContent = event.data.value
+      colorText.style.color = event.data.value
+    }
+  })
+
 }
 
 

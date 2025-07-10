@@ -36,7 +36,7 @@ void main() {
     vec2 position = gl_FragCoord.xy / uResolution;
     vec2 mousePos = uMouse / uResolution;
 
-    float pickerSize = 0.15;
+    float pickerSize = 0.1;
     float pickerBorderSize = 0.005;
 
     vec2 toCenter = vec2(0.5) - position;
