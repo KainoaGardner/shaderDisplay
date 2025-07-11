@@ -1,4 +1,4 @@
-var shaderIndex = 0
+var shaderIndex = 7
 
 const shaders = [
   "clock",
@@ -42,3 +42,5 @@ function setIFrames() {
   shaderFrame.src = `/shaders/${shaders[shaderIndex]}/index.html#canvas`
   uiFrame.src = `/shaders/${shaders[shaderIndex]}/index.html#ui`
 }
+
+setIFrames()

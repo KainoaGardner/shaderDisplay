@@ -27,7 +27,7 @@ function main() {
 
 
 let startTime = performance.now();
-const mousePos = { x: 0, y: 0 }
+const mousePos = { x: 300, y: 300 }
 let mousePressed = false
 
 let speed = 1.0;
@@ -58,10 +58,8 @@ function mainCanvas() {
     const mousePosX0 = event.clientX - rect0.left;
     const mousePosY0 = canvas.height - event.clientY + rect0.top;
 
-    if (mousePressed) {
-      mousePos.x = mousePosX0
-      mousePos.y = mousePosY0
-    }
+    mousePos.x = mousePosX0
+    mousePos.y = mousePosY0
   });
 
   document.addEventListener("wheel", function(event) {
@@ -112,8 +110,8 @@ function mainCanvas() {
 
     shader.set1f(gl, "uSpeed", speed)
 
-    // console.log(mousePos.x, mousePos.y)
-    // shader.set2f(gl, "uMouse", mousePos.x, mousePos.y)
+    console.log(mousePos.x, mousePos.y)
+    shader.set2f(gl, "uMouse", mousePos.x, mousePos.y)
 
     gl.bindVertexArray(vao)
     gl.drawElements(gl.TRIANGLES, Geometry.SQUARE_INDICES.length, gl.UNSIGNED_SHORT, 0);
