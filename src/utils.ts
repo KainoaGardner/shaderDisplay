@@ -136,6 +136,7 @@ export function createScreenFrameBuffer(gl: WebGL2RenderingContext, width: numbe
   gl.bindFramebuffer(gl.FRAMEBUFFER, screenFramebuffer)
 
   const screenTexture = gl.createTexture();
+  gl.activeTexture(gl.TEXTURE0)
   gl.bindTexture(gl.TEXTURE_2D, screenTexture)
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, width, height, 0, gl.RGB, gl.UNSIGNED_BYTE, null)
 

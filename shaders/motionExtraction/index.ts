@@ -28,21 +28,8 @@ function main() {
       console.error("cant find canvas");
       return
     }
-    const toggleButton = document.getElementById("toggle") as HTMLElement;
-    toggleButton.addEventListener("click", function() {
-      sendToggleToCanvas()
-    });
 
     canvas.style.display = "none"
-
-    const loading = document.getElementById("loading") as HTMLCanvasElement;
-    if (!loading) {
-      console.error("cant find canvas");
-      return
-    }
-    canvas.style.display = "none"
-    loading.style.display = "none"
-
     mainUI()
 
   } else {
@@ -189,7 +176,21 @@ function updateFrame(): void {
 
 
 function mainUI() {
+  const toggleButton = document.getElementById("toggle") as HTMLElement;
+  toggleButton.addEventListener("click", function() {
+    sendToggleToCanvas()
+  });
+
+
+  const loading = document.getElementById("loading") as HTMLCanvasElement;
+  if (!loading) {
+    console.error("cant find canvas");
+    return
+  }
+
+  loading.style.display = "none"
 }
+
 
 function createTextures(gl: WebGL2RenderingContext, images: HTMLImageElement[]) {
   const textures: WebGLTexture[] = [];
