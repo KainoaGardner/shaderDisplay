@@ -241,7 +241,6 @@ function loadImage(source: string, index: number) {
     finishedFrame++
     if (checkImagesLoaded()) {
       if (!checkValidImages()) {
-        console.log("NO")
         finishedFrame = 0
         setup()
       } else {

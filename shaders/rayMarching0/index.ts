@@ -64,7 +64,6 @@ function mainCanvas() {
 
   document.addEventListener("wheel", function(event) {
     speed += event.deltaY / -1000.0;
-    console.log(speed)
   })
 
   const gl = canvas.getContext("webgl2")
@@ -110,7 +109,6 @@ function mainCanvas() {
 
     shader.set1f(gl, "uSpeed", speed)
 
-    console.log(mousePos.x, mousePos.y)
     shader.set2f(gl, "uMouse", mousePos.x, mousePos.y)
 
     gl.bindVertexArray(vao)
