@@ -1,16 +1,25 @@
 import { Shader, createScreenFrameBuffer } from "../../src/utils"
 import { Geometry } from "../../src/geometry"
-import gaussianBlurFragmentSource from "./gaussianBlur.frag?raw"
-import screenFragmentSource from "./screenFragment.frag?raw"
-import offFragmentSource from "./offFragment.frag?raw"
+import fragmentSource from "./fragment.frag?raw"
 import vertexSource from "./vertex.vert?raw"
 
 
-function sendToggleToCanvas() {
+function sendSliderToCanvas(value: string) {
   const frames = window.parent.frames;
   for (let i = 0; i < frames.length; i++) {
     try {
-      frames[i].postMessage({ type: "TOGGLE" }, "*")
+      frames[i].postMessage({ type: "SLIDER", value: value }, "*")
+    } catch (e) {
+
+    }
+  }
+}
+
+function sendPixelAmountToUI(value: string) {
+  const frames = window.parent.frames;
+  for (let i = 0; i < frames.length; i++) {
+    try {
+      frames[i].postMessage({ type: "PIXEL_AMOUNT", value: value }, "*")
     } catch (e) {
 
     }
@@ -40,15 +49,18 @@ function main() {
 }
 
 
+const k = 0.0167115
+
 let startTime = performance.now();
 function mainCanvas() {
-  let toggle = true;
+  let pixelAmount = 8;
 
   window.addEventListener("message", (event) => {
-    if (event.data?.type === "TOGGLE") {
-      toggle = !toggle
+    if (event.data?.type === "SLIDER") {
+      let x = parseInt(event.data.value)
+      pixelAmount = Math.floor(Math.exp(k * x) + 0.5)
+      sendPixelAmountToUI(pixelAmount.toString())
     }
-    console.log(toggle)
   })
 
   const canvas = document.getElementById("canvas") as HTMLCanvasElement;
@@ -63,32 +75,20 @@ function mainCanvas() {
     return;
   }
 
-  const blurShader = new Shader(gl, vertexSource, gaussianBlurFragmentSource)
-  if (!blurShader.valid) {
-    console.error("could not make shader")
-    return;
-  }
-
-  const screenShader = new Shader(gl, vertexSource, screenFragmentSource)
-  if (!screenShader.valid) {
-    console.error("could not make shader")
-    return;
-  }
-
-  const offShader = new Shader(gl, vertexSource, offFragmentSource)
-  if (!offShader.valid) {
+  const shader = new Shader(gl, vertexSource, fragmentSource)
+  if (!shader.valid) {
     console.error("could not make shader")
     return;
   }
 
 
-  const aPositionAttribute = gl.getAttribLocation(blurShader.program, "aPosition");
+  const aPositionAttribute = gl.getAttribLocation(shader.program, "aPosition");
   if (aPositionAttribute < 0) {
     console.error("Could not find attribuites")
     return null
   }
 
-  const aTextureAttribute = gl.getAttribLocation(blurShader.program, "aTexCoord");
+  const aTextureAttribute = gl.getAttribLocation(shader.program, "aTexCoord");
   if (aTextureAttribute < 0) {
     console.error("Could not find attribuites")
     return null
@@ -111,6 +111,9 @@ function mainCanvas() {
     return null
   }
 
+  canvas.height = canvas.clientHeight;
+  canvas.width = canvas.clientWidth;
+
   const texture = gl.createTexture();
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, texture)
@@ -123,64 +126,25 @@ function mainCanvas() {
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images[0])
 
 
-  canvas.height = canvas.clientHeight;
-  canvas.width = canvas.clientWidth;
-  const { screenFramebuffer, screenTexture } = createScreenFrameBuffer(gl, canvas.width, canvas.height)
 
+
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null)
   const frame = function() {
+    gl.viewport(0, 0, canvas.width, canvas.height)
+    gl.clearColor(0.2, 0.2, 0.2, 1.0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
     canvas.height = canvas.clientHeight;
     canvas.width = canvas.clientWidth;
 
+    gl.useProgram(shader.program)
+    shader.set1i(gl, "uImage", 0)
+    shader.set1f(gl, "uPixelAmount", pixelAmount)
+    shader.set2f(gl, "uResolution", canvas.width, canvas.height)
 
-
-
-    if (toggle) {
-      gl.bindFramebuffer(gl.FRAMEBUFFER, screenFramebuffer)
-      gl.viewport(0, 0, canvas.width, canvas.height)
-      gl.clearColor(0.2, 0.2, 0.2, 1.0);
-      gl.clear(gl.COLOR_BUFFER_BIT);
-
-      gl.useProgram(blurShader.program)
-
-      gl.activeTexture(gl.TEXTURE0)
-      gl.bindTexture(gl.TEXTURE_2D, texture)
-      blurShader.set1i(gl, "uImage", 0)
-
-      gl.bindVertexArray(vao)
-      gl.drawElements(gl.TRIANGLES, Geometry.SQUARE_INDICES.length, gl.UNSIGNED_SHORT, 0);
-
-      gl.bindFramebuffer(gl.FRAMEBUFFER, null)
-      gl.viewport(0, 0, canvas.width, canvas.height)
-      gl.clearColor(0.5, 0.2, 0.2, 1.0);
-      gl.clear(gl.COLOR_BUFFER_BIT);
-
-      gl.useProgram(screenShader.program)
-      gl.activeTexture(gl.TEXTURE0)
-      gl.bindTexture(gl.TEXTURE_2D, screenTexture)
-
-      screenShader.set1i(gl, "uImage", 0)
-
-      gl.bindVertexArray(vao)
-      gl.drawElements(gl.TRIANGLES, Geometry.SQUARE_INDICES.length, gl.UNSIGNED_SHORT, 0);
-      gl.bindVertexArray(null)
-
-
-    } else {
-      gl.viewport(0, 0, canvas.width, canvas.height)
-      gl.clearColor(0.2, 0.2, 0.2, 1.0);
-      gl.clear(gl.COLOR_BUFFER_BIT);
-
-      gl.bindFramebuffer(gl.FRAMEBUFFER, null)
-      gl.useProgram(offShader.program)
-      gl.activeTexture(gl.TEXTURE0)
-      gl.bindTexture(gl.TEXTURE_2D, texture)
-      offShader.set1i(gl, "uImage", 0)
-      gl.bindVertexArray(vao)
-      gl.drawElements(gl.TRIANGLES, Geometry.SQUARE_INDICES.length, gl.UNSIGNED_SHORT, 0);
-      gl.bindVertexArray(null)
-    }
-
-
+    gl.bindVertexArray(vao)
+    gl.drawElements(gl.TRIANGLES, Geometry.SQUARE_INDICES.length, gl.UNSIGNED_SHORT, 0);
+    gl.bindVertexArray(null)
 
     requestAnimationFrame(frame);
   }
@@ -189,17 +153,31 @@ function mainCanvas() {
 }
 
 function mainUI() {
-  const toggleButton = document.getElementById("toggle") as HTMLElement;
-  toggleButton.addEventListener("click", function() {
-    sendToggleToCanvas()
+  const slider = document.getElementById("slider") as HTMLInputElement;
+  slider.addEventListener("input", function(event) {
+    sendSliderToCanvas(this.value)
   });
+
+  const pixelAmountElement = document.getElementById("pixelAmount") as HTMLElement;
+  if (!pixelAmountElement) {
+    console.error("cant find pixelamount element");
+    return
+  }
+
+  window.addEventListener("message", (event) => {
+    if (event.data?.type === "PIXEL_AMOUNT") {
+      const pixelAmount = event.data.value
+      pixelAmountElement.textContent = pixelAmount + "x" + pixelAmount + " Pixels"
+    }
+  })
+
 }
 
 
 
 const images: HTMLImageElement[] = [];
 function setup() {
-  loadImage("../../assets/edgeDetection/pantheon.jpeg")
+  loadImage("../../assets/pixelize/girlWithPearl.jpg")
 }
 
 function checkImagesLoaded(): boolean {

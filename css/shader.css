@@ -49,6 +49,9 @@ h2 {
 
 .buttons {
   display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
 }
 
 .copyButton {
@@ -58,4 +61,8 @@ h2 {
 
 button:active {
   background: #000;
+}
+
+#slider {
+  width: 400px;
 }
