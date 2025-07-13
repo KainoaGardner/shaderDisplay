@@ -167,7 +167,7 @@ function mainUI() {
   window.addEventListener("message", (event) => {
     if (event.data?.type === "PIXEL_AMOUNT") {
       const pixelAmount = event.data.value
-      pixelAmountElement.textContent = pixelAmount + "x" + pixelAmount + " Pixels"
+      pixelAmountElement.textContent = pixelAmount + "x" + pixelAmount
     }
   })
 

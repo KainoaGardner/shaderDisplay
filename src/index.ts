@@ -1,4 +1,4 @@
-var shaderIndex = 9
+var shaderIndex = 0
 
 const shaders = [
   "clock",
