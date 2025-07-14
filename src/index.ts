@@ -1,4 +1,4 @@
-var shaderIndex = 0
+var shaderIndex = 10
 
 const shaders = [
   "clock",
@@ -11,6 +11,7 @@ const shaders = [
   "rayMarching0",
   "edgeDetection",
   "pixelize",
+  "glitch",
 ]
 
 const shaderFrame = document.getElementById("shaderFrame") as HTMLIFrameElement
