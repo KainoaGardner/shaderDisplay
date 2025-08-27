@@ -30,6 +30,11 @@ function mainCanvas() {
         console.error("cant find canvas");
         return;
     }
+    const loading = document.getElementById("loading");
+    if (!loading) {
+        console.error("cant find canvas");
+        return;
+    }
     document.addEventListener("mousemove", function (event) {
         const rect0 = canvas.getBoundingClientRect();
         const mousePosX0 = event.clientX - rect0.left;
@@ -70,6 +75,7 @@ function mainCanvas() {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images[0]);
+    loading.style.display = "none";
     gl.useProgram(shader.program);
     shader.set1i(gl, "uImage", 0);
     const frame = function () {
@@ -89,6 +95,12 @@ function mainCanvas() {
     requestAnimationFrame(frame);
 }
 function mainUI() {
+    const loading = document.getElementById("loading");
+    if (!loading) {
+        console.error("cant find canvas");
+        return;
+    }
+    loading.style.display = "none";
 }
 const images = [];
 function setup() {

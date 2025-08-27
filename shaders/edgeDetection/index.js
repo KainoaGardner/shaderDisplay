@@ -48,6 +48,11 @@ function mainCanvas() {
         console.error("cant find canvas");
         return;
     }
+    const loading = document.getElementById("loading");
+    if (!loading) {
+        console.error("cant find canvas");
+        return;
+    }
     const gl = canvas.getContext("webgl2");
     if (!gl) {
         console.error("could not get webgl context");
@@ -91,6 +96,7 @@ function mainCanvas() {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images[0]);
+    loading.style.display = "none";
     canvas.height = canvas.clientHeight;
     canvas.width = canvas.clientWidth;
     const { screenFramebuffer, screenTexture } = createScreenFrameBuffer(gl, canvas.width, canvas.height);
@@ -142,6 +148,12 @@ function mainUI() {
     toggleButton.addEventListener("click", function () {
         sendToggleToCanvas();
     });
+    const loading = document.getElementById("loading");
+    if (!loading) {
+        console.error("cant find canvas");
+        return;
+    }
+    loading.style.display = "none";
 }
 const images = [];
 function setup() {

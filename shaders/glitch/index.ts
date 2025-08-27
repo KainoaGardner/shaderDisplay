@@ -38,6 +38,13 @@ function mainCanvas() {
     return
   }
 
+  const loading = document.getElementById("loading") as HTMLCanvasElement;
+  if (!loading) {
+    console.error("cant find canvas");
+    return
+  }
+
+
   const gl = canvas.getContext("webgl2")
   if (!gl) {
     console.error("could not get webgl context")
@@ -95,7 +102,7 @@ function mainCanvas() {
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images[0])
 
 
-
+  loading.style.display = "none"
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, null)
   const frame = function() {
@@ -126,6 +133,13 @@ function mainCanvas() {
 }
 
 function mainUI() {
+  const loading = document.getElementById("loading") as HTMLCanvasElement;
+  if (!loading) {
+    console.error("cant find canvas");
+    return
+  }
+
+  loading.style.display = "none"
 }
 
 

@@ -1,5 +1,5 @@
 "use strict";
-var shaderIndex = 10;
+var shaderIndex = 0;
 const shaders = [
     "clock",
     "waldo",

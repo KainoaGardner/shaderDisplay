@@ -102,7 +102,6 @@ function mainCanvas() {
     return null
   }
 
-
   const vao = Geometry.createPosTexGeometry(gl,
     Geometry.SQUARE_VERTICES,
     Geometry.SQUARE_INDICES,
