@@ -82,7 +82,7 @@ function mainCanvas() {
   }
 
   const screenShader = new Shader(gl, screenVertexSource, screenFragmentSource)
-  if (!shader.valid) {
+  if (!screenShader.valid) {
     console.error("could not make shader")
     return;
   }
@@ -177,6 +177,7 @@ function mainCanvas() {
     gl.bindVertexArray(null)
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+
     canvas.height = canvas.clientHeight;
     canvas.width = canvas.clientWidth;
 
