@@ -120,6 +120,8 @@ function mainCanvas() {
   const textureHeight = canvas.height
   const { screenFramebuffer, screenTexture } = createScreenFrameBuffer(gl, textureWidth, textureHeight)
 
+  gl.enable(gl.BLEND);
+  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
   const frame = function() {
     canvas.height = canvas.clientHeight;
@@ -143,7 +145,6 @@ function mainCanvas() {
 
 
 
-
     gl.bindFramebuffer(gl.FRAMEBUFFER, null)
 
     canvas.height = canvas.clientHeight;
@@ -154,16 +155,14 @@ function mainCanvas() {
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     gl.useProgram(screenShader.program)
-    screenShader.set2f(gl, "uResolution", canvas.width, canvas.height)
-    screenShader.set2f(gl, "uLavaResolution", lavaLampTextureWidth, lavaLampTextureHeight)
-
-    // gl.activeTexture(gl.TEXTURE0)
-    // gl.bindTexture(gl.TEXTURE_2D, screenTexture)
-    // screenShader.set1i(gl, "uImage", 0)
 
     gl.activeTexture(gl.TEXTURE0)
     gl.bindTexture(gl.TEXTURE_2D, lavaLampTexture)
     screenShader.set1i(gl, "uImage", 0)
+
+    gl.activeTexture(gl.TEXTURE1)
+    gl.bindTexture(gl.TEXTURE_2D, screenTexture)
+    screenShader.set1i(gl, "uFrameImage", 1)
 
 
     gl.bindVertexArray(screenVao)
@@ -189,7 +188,7 @@ function mainUI() {
 
 const images: HTMLImageElement[] = [];
 function setup() {
-  loadImage("../../assets/lavaLamp/lavaLamp.png")
+  loadImage("../../assets/lavaLamp/lavalamp.png")
 }
 
 function checkImagesLoaded(): boolean {

@@ -5,17 +5,18 @@ out vec4 outputColor;
 in vec2 vTexCoord;
 
 uniform sampler2D uImage;
-uniform vec2 uResolution;
-uniform vec2 uLavaResolution;
+uniform sampler2D uFrameImage;
 
 void main() {
     vec2 uv = vec2(vTexCoord.x, 1.0 - vTexCoord.y);
-    vec2 aspectRatioLavaLamp = uResolution / uLavaResolution;
-    vec2 lavaUV = uv * aspectRatioLavaLamp;
-    lavaUV.x += (1.0 - aspectRatioLavaLamp.x) * 0.5;
-    lavaUV.y += (1.0 - aspectRatioLavaLamp.y) * 0.25;
 
-    vec3 color = texture(uImage, lavaUV).xyz;
+    vec4 frameColor = texture(uFrameImage, uv);
+    vec4 color = texture(uImage, uv);
+    color = mix(vec4(0.5,0.8,0.5,1.0),color,color.a);
 
-    outputColor = vec4(color, 1.0);
+    float green = step(color.g,0.95);
+    vec4 finalColor = mix(frameColor,color,green);
+
+    finalColor = mix(vec4(0.0),finalColor,color.a);
+    outputColor = vec4(finalColor);
 }
