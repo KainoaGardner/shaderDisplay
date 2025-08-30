@@ -1,5 +1,5 @@
 "use strict";
-var shaderIndex = 0;
+var shaderIndex = 11;
 const shaders = [
     "clock",
     "waldo",
@@ -12,6 +12,7 @@ const shaders = [
     "edgeDetection",
     "pixelize",
     "glitch",
+    "lavaLamp",
 ];
 const shaderFrame = document.getElementById("shaderFrame");
 const uiFrame = document.getElementById("uiFrame");

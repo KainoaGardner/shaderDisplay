@@ -154,8 +154,6 @@ vec3 lavaPalette(float t) {
     }
 }
 
-
-
 void main() {
     vec2 st = gl_FragCoord.xy / uResolution;
     vec2 uv = st * 2.0 - 1.0;
@@ -167,6 +165,7 @@ void main() {
     vec3 color = vec3(0.0);
 
     float dist = 0.0;
+    float alpha = 0.0;
 
     int i = 0;
     for (i = 0; i < MAX_ITERATIONS; i++) {
@@ -174,14 +173,16 @@ void main() {
         float currDist = map(pos, rayDir);
 
         dist += currDist;
-        // color = vec3(i) / float(MAX_ITERATIONS);
 
-        if (currDist < MIN_DIST || dist > MAX_DIST) break;
+        if (currDist < MIN_DIST){
+          alpha = 1.0;
+          break;
+        }
+        if (dist > MAX_DIST) break;
     }
 
     
-    float value = step(dist,100.0);
-    float t = dist * dist * 0.1;
-    color = lavaPalette(t) * value;
-    outputColor = vec4(color, 1.0);
+    float t = dist * dist * 0.25;
+    color = lavaPalette(t);
+    outputColor = vec4(color, alpha);
 }

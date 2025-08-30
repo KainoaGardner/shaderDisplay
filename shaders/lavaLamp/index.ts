@@ -1,4 +1,4 @@
-import { Shader, createScreenFrameBuffer } from "../../src/utils"
+import { Shader, createScreenFrameBufferAlpha } from "../../src/utils"
 import { Geometry } from "../../src/geometry"
 import fragmentSource from "./fragment.frag?raw"
 import vertexSource from "./vertex.vert?raw"
@@ -41,7 +41,7 @@ function mainCanvas() {
     return
   }
 
-  const gl = canvas.getContext("webgl2")
+  const gl = canvas.getContext("webgl2",{alpha: true})
   if (!gl) {
     console.error("could not get webgl context")
     return;
@@ -103,13 +103,17 @@ function mainCanvas() {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images[0])
 
-  const lavaLampTextureWidth = images[0].width
-  const lavaLampTextureHeight = images[0].height
-  
+  const lavaLampMaskTexture = gl.createTexture();
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, lavaLampMaskTexture)
 
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images[1])
 
   loading.style.display = "none"
 
@@ -118,15 +122,15 @@ function mainCanvas() {
 
   const textureWidth = canvas.width
   const textureHeight = canvas.height
-  const { screenFramebuffer, screenTexture } = createScreenFrameBuffer(gl, textureWidth, textureHeight)
+  const { screenFramebuffer, screenTexture } = createScreenFrameBufferAlpha(gl, textureWidth, textureHeight)
 
-  gl.enable(gl.BLEND);
   gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
   const frame = function() {
     canvas.height = canvas.clientHeight;
     canvas.width = canvas.clientWidth;
 
+    gl.disable(gl.BLEND);
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, screenFramebuffer)
     gl.viewport(0, 0, textureWidth, textureHeight)
@@ -144,7 +148,7 @@ function mainCanvas() {
     gl.bindVertexArray(null)
 
 
-
+    gl.enable(gl.BLEND);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null)
 
     canvas.height = canvas.clientHeight;
@@ -158,11 +162,15 @@ function mainCanvas() {
 
     gl.activeTexture(gl.TEXTURE0)
     gl.bindTexture(gl.TEXTURE_2D, lavaLampTexture)
-    screenShader.set1i(gl, "uImage", 0)
+    screenShader.set1i(gl, "uFrame", 0)
 
     gl.activeTexture(gl.TEXTURE1)
+    gl.bindTexture(gl.TEXTURE_2D, lavaLampMaskTexture)
+    screenShader.set1i(gl, "uMask", 1)
+
+    gl.activeTexture(gl.TEXTURE2)
     gl.bindTexture(gl.TEXTURE_2D, screenTexture)
-    screenShader.set1i(gl, "uFrameImage", 1)
+    screenShader.set1i(gl, "uSim", 2)
 
 
     gl.bindVertexArray(screenVao)
@@ -188,11 +196,12 @@ function mainUI() {
 
 const images: HTMLImageElement[] = [];
 function setup() {
-  loadImage("../../assets/lavaLamp/lavalamp.png")
+  loadImage("../../assets/lavaLamp/lavaLamp.png")
+  loadImage("../../assets/lavaLamp/lavaLampMask.png")
 }
 
 function checkImagesLoaded(): boolean {
-  if (images.length === 1) {
+  if (images.length === 2) {
     return true
   }
   return false

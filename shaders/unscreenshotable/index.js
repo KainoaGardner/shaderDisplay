@@ -63,7 +63,7 @@ function mainCanvas() {
         return;
     }
     const screenShader = new Shader(gl, screenVertexSource, screenFragmentSource);
-    if (!shader.valid) {
+    if (!screenShader.valid) {
         console.error("could not make shader");
         return;
     }

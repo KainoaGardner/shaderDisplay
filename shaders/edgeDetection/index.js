@@ -41,7 +41,6 @@ function mainCanvas() {
         if (event.data?.type === "TOGGLE") {
             toggle = !toggle;
         }
-        console.log(toggle);
     });
     const canvas = document.getElementById("canvas");
     if (!canvas) {
