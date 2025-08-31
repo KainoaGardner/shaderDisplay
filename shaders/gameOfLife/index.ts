@@ -94,8 +94,8 @@ function mainCanvas() {
   canvas.height = canvas.clientHeight;
   canvas.width = canvas.clientWidth;
 
-  const textureWidth = 100
-  const textureHeight = 100
+  const textureWidth = 50
+  const textureHeight = 50
 
   const spawnPercent = 0.1;
   const startData = createInitialData(spawnPercent,textureWidth,textureHeight)
@@ -108,7 +108,7 @@ function mainCanvas() {
   let currFB = fbB;
 
   let lastFrameTime = performance.now()
-  const FPS = 5;
+  const FPS = 10;
   const timePerFrame = 1.0 / FPS
 
   let currFrameTimeAmount = 0;
@@ -162,6 +162,8 @@ function mainCanvas() {
 
     gl.activeTexture(gl.TEXTURE0)
     gl.bindTexture(gl.TEXTURE_2D, currTexture)
+
+    screenShader.set3f(gl, "uCellColor", 1.0,0.0,0.0)
     screenShader.set1i(gl, "uImage", 0)
 
     gl.bindVertexArray(screenVao)
