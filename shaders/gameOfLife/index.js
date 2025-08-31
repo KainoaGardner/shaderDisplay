@@ -1,4 +1,4 @@
-import { Shader, createScreenFrameBufferAlpha } from "../../src/utils";
+import { Shader, createScreenFrameBufferRed } from "../../src/utils";
 import { Geometry } from "../../src/geometry";
 import fragmentSource from "./fragment.frag?raw";
 import vertexSource from "./vertex.vert?raw";
@@ -21,10 +21,9 @@ function main() {
             return;
         }
         ui.style.display = "none";
-        setup();
+        mainCanvas();
     }
 }
-let startTime = performance.now();
 function mainCanvas() {
     const canvas = document.getElementById("canvas");
     if (!canvas) {
@@ -76,62 +75,62 @@ function mainCanvas() {
         console.error("could not make vao");
         return null;
     }
-    const lavaLampTexture = gl.createTexture();
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, lavaLampTexture);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images[0]);
-    const lavaLampMaskTexture = gl.createTexture();
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, lavaLampMaskTexture);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images[1]);
     loading.style.display = "none";
     canvas.height = canvas.clientHeight;
     canvas.width = canvas.clientWidth;
-    const textureWidth = canvas.width;
-    const textureHeight = canvas.height;
-    const { screenFramebuffer, screenTexture } = createScreenFrameBufferAlpha(gl, textureWidth, textureHeight);
+    const textureWidth = 10;
+    const textureHeight = 10;
+    const startData = createInitialData(textureWidth, textureHeight);
+    console.log(startData);
+    const { screenFramebuffer: fbA, screenTexture: texA } = createScreenFrameBufferRed(gl, textureWidth, textureHeight, startData);
+    const { screenFramebuffer: fbB, screenTexture: texB } = createScreenFrameBufferRed(gl, textureWidth, textureHeight);
+    let lastTexture = texA;
+    let lastFB = fbA;
+    let currTexture = texB;
+    let currFB = fbB;
+    let lastFrameTime = performance.now();
+    const FPS = 5;
+    const timePerFrame = 1.0 / FPS;
+    let currFrameTimeAmount = 0;
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     const frame = function () {
         canvas.height = canvas.clientHeight;
         canvas.width = canvas.clientWidth;
-        gl.disable(gl.BLEND);
-        gl.bindFramebuffer(gl.FRAMEBUFFER, screenFramebuffer);
-        gl.viewport(0, 0, textureWidth, textureHeight);
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        gl.clear(gl.COLOR_BUFFER_BIT);
-        gl.useProgram(shader.program);
-        shader.set2f(gl, "uResolution", canvas.width, canvas.height);
         const currFrameTime = performance.now();
-        const timePassed = (currFrameTime - startTime) / 1000;
-        shader.set1f(gl, "uTime", timePassed);
-        gl.bindVertexArray(vao);
-        gl.drawElements(gl.TRIANGLES, Geometry.SQUARE_INDICES.length, gl.UNSIGNED_SHORT, 0);
-        gl.bindVertexArray(null);
-        gl.enable(gl.BLEND);
+        const dt = (currFrameTime - lastFrameTime) / 1000;
+        lastFrameTime = currFrameTime;
+        currFrameTimeAmount += dt;
+        if (currFrameTimeAmount > timePerFrame) {
+            currFrameTimeAmount = currFrameTimeAmount % timePerFrame;
+            gl.disable(gl.BLEND);
+            gl.bindFramebuffer(gl.FRAMEBUFFER, currFB);
+            gl.viewport(0, 0, textureWidth, textureHeight);
+            gl.clearColor(0.0, 0.0, 0.0, 0.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            gl.useProgram(shader.program);
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, lastTexture);
+            shader.set1i(gl, "uImage", 0);
+            shader.set2f(gl, "uResolution", textureWidth, textureHeight);
+            gl.bindVertexArray(vao);
+            gl.drawElements(gl.TRIANGLES, Geometry.SQUARE_INDICES.length, gl.UNSIGNED_SHORT, 0);
+            gl.bindVertexArray(null);
+            const tempTexture = currTexture;
+            currTexture = lastTexture;
+            lastTexture = tempTexture;
+            const tempFB = currFB;
+            currFB = lastFB;
+            lastFB = tempFB;
+        }
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        canvas.height = canvas.clientHeight;
-        canvas.width = canvas.clientWidth;
+        gl.enable(gl.BLEND);
         gl.viewport(0, 0, canvas.width, canvas.height);
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clearColor(0.0, 0.0, 0.0, 0.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.useProgram(screenShader.program);
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, lavaLampTexture);
-        screenShader.set1i(gl, "uFrame", 0);
-        gl.activeTexture(gl.TEXTURE1);
-        gl.bindTexture(gl.TEXTURE_2D, lavaLampMaskTexture);
-        screenShader.set1i(gl, "uMask", 1);
-        gl.activeTexture(gl.TEXTURE2);
-        gl.bindTexture(gl.TEXTURE_2D, screenTexture);
-        screenShader.set1i(gl, "uSim", 2);
+        gl.bindTexture(gl.TEXTURE_2D, currTexture);
+        screenShader.set1i(gl, "uImage", 0);
         gl.bindVertexArray(screenVao);
         gl.drawElements(gl.TRIANGLES, Geometry.SQUARE_INDICES.length, gl.UNSIGNED_SHORT, 0);
         gl.bindVertexArray(null);
@@ -147,29 +146,11 @@ function mainUI() {
     }
     loading.style.display = "none";
 }
-const images = [];
-function setup() {
-    loadImage("../../assets/lavaLamp/lavaLamp.png");
-    loadImage("../../assets/lavaLamp/lavaLampMask.png");
-}
-function checkImagesLoaded() {
-    if (images.length === 2) {
-        return true;
+function createInitialData(width, height) {
+    const data = new Uint8Array(width * height); // one byte per pixel
+    for (let i = 0; i < data.length; i++) {
+        data[i] = Math.random() > 0.8 ? 255 : 0; // 20% alive, 80% dead
     }
-    return false;
-}
-function loadImage(source) {
-    const image = new Image();
-    if (!image) {
-        console.error("Could not load image");
-        return;
-    }
-    image.src = source;
-    image.onload = function () {
-        images.push(image);
-        if (checkImagesLoaded()) {
-            mainCanvas();
-        }
-    };
+    return data;
 }
 main();

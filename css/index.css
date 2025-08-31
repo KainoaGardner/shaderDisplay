@@ -1,15 +1,21 @@
+html {
+  height: 100%;
+}
+
 body {
   margin: 0;
-  padding: 0;
+  height: 100%;
+  /* padding: 4rem; */
   background-color: #111;
   font-family: sans-serif;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   /* height: 100vh; */
   overflow: hidden;
 }
+
 
 /* Container for both iframes */
 iframe {
@@ -20,8 +26,8 @@ iframe {
 
 /* Shader (canvas) iframe on top */
 #shaderFrame {
-  width: 600px;
-  height: 600px;
+  width: 800px;
+  height: 800px;
   z-index: 1;
   position: relative;
   overflow: hidden;
@@ -31,8 +37,8 @@ iframe {
 }
 
 #uiFrame {
-  width: 600px;
-  height: 100%;
+  width: 800px;
+  height: 200px;
   background-color: #222;
   position: relative;
   overflow: hidden;
@@ -47,7 +53,7 @@ iframe {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 2rem;
+  font-size: 4rem;
   background: rgba(0, 0, 0, 0.5);
   color: white;
   border: none;
@@ -57,10 +63,10 @@ iframe {
 }
 
 #prevArrow {
-  left: calc(50% - 400px - 40px);
+  left: calc(50% - 550px);
   /* 800px / 2 + offset */
 }
 
 #nextArrow {
-  right: calc(50% - 400px - 40px);
+  right: calc(50% - 550px);
 }
