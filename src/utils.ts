@@ -173,7 +173,6 @@ export function createScreenFrameBufferAlpha(gl: WebGL2RenderingContext, width: 
 }
 
 export function createScreenFrameBufferRed(gl: WebGL2RenderingContext, width: number, height: number,data: Uint8Array | null = null) {
-  console.log(width,height)
   const screenFramebuffer = gl.createFramebuffer();
   gl.bindFramebuffer(gl.FRAMEBUFFER, screenFramebuffer)
 

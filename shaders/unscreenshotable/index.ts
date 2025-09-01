@@ -8,8 +8,6 @@ import screenVertexSource from "./screenVertex.vert?raw"
 
 import { mat4, vec3, vec2 } from "gl-matrix"
 
-
-
 function sendPauseToCanvas() {
   const frames = window.parent.frames;
   for (let i = 0; i < frames.length; i++) {
