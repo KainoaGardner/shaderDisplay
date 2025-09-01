@@ -137,7 +137,6 @@ export function createScreenFrameBufferAlpha(gl, width, height, data = null) {
     return { screenFramebuffer, screenTexture };
 }
 export function createScreenFrameBufferRed(gl, width, height, data = null) {
-    console.log(width, height);
     const screenFramebuffer = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, screenFramebuffer);
     const screenTexture = gl.createTexture();

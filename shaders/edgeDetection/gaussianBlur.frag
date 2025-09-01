@@ -4,7 +4,7 @@ precision mediump float;
 out vec4 outputColor;
 in vec2 vTexCoord;
 
-uniform vec2 uResolution;
+
 uniform sampler2D uImage;
 
 const float kernel[25] = float[](

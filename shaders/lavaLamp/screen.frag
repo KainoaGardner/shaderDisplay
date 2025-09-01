@@ -8,6 +8,9 @@ uniform sampler2D uFrame;
 uniform sampler2D uMask;
 uniform sampler2D uSim;
 
+uniform vec2 uResolution;
+uniform vec2 uTextureResolution;
+
 vec3 lavaPalette(float t) {
     t = clamp(t, 0.0, 1.0);
 
@@ -23,11 +26,14 @@ vec3 lavaPalette(float t) {
 }
 
 void main() {
+    vec2 texRatio = uTextureResolution / uResolution;
     vec2 uv = vec2(vTexCoord.x, 1.0 - vTexCoord.y);
+    vec2 scaledUV = uv / texRatio;
+    vec2 offset = (1.0 - 1.0 / texRatio) * 0.5;
+    vec2 centeredUV = scaledUV + offset;
 
     float mask = texture(uMask, uv).a;
-
-    vec4 simColor = texture(uSim, uv);
+    vec4 simColor = texture(uSim, scaledUV);
     vec4 frameColor = texture(uFrame, uv);
 
     vec4 bgColor = vec4(lavaPalette((uv.y) * 1.0),1.0);
@@ -38,7 +44,7 @@ void main() {
     vec4 simWithBg = mix(maskedBg,maskedSim,simColor.a);
 
     vec4 finalColor = mix(simWithBg,frameColor,frameColor.a);
-    
+
     float distFromCenter = distance(uv,vec2(0.5)) * 0.25;
     vec4 testColor = vec4(vec3(distFromCenter),1.);
     float lavaMask = (1. - (1.-mask) * (1.-frameColor.a));

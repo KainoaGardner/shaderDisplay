@@ -103,7 +103,6 @@ float map(vec3 pos, vec3 rayDir) {
     pos.y += cos(r.y + time * 0.5) * BIG_SPEED;
     // q.z += sin(r.z + time * orbSpeed.z) * SMALL_ORB_SPEED;
 
-
     for (int i = 0; i < ORB_AMOUNT; i++) {
         vec3 q = pos;
         vec3 orbPos = ORB_POS[i] * SMALL_ORB_POS;

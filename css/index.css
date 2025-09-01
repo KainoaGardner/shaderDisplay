@@ -1,19 +1,19 @@
 html {
   height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 body {
   margin: 0;
-  height: 100%;
-  /* padding: 4rem; */
+  height: 90%;
   background-color: #111;
   font-family: sans-serif;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  /* height: 100vh; */
-  overflow: hidden;
 }
 
 
@@ -26,25 +26,24 @@ iframe {
 
 /* Shader (canvas) iframe on top */
 #shaderFrame {
-  width: 800px;
-  height: 800px;
+  height: 80%;
   z-index: 1;
   position: relative;
   overflow: hidden;
   border: none;
   display: block;
-
+  aspect-ratio: 1/1;
 }
 
 #uiFrame {
-  width: 800px;
-  height: 200px;
   background-color: #222;
+  height: 20%;
+  z-index: 1;
   position: relative;
   overflow: hidden;
   border: none;
   display: block;
-
+  aspect-ratio: 4/1;
 }
 
 /* Navigation arrows */
@@ -53,20 +52,19 @@ iframe {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 4rem;
+  font-size: 7.5vh;
   background: rgba(0, 0, 0, 0.5);
   color: white;
   border: none;
-  padding: 10px 15px;
+  padding: 3vh 3.5vh;
   cursor: pointer;
   z-index: 10;
 }
 
 #prevArrow {
-  left: calc(50% - 550px);
-  /* 800px / 2 + offset */
+  left: calc(50% - 55vh);
 }
 
 #nextArrow {
-  right: calc(50% - 550px);
+  right: calc(50% - 55vh);
 }

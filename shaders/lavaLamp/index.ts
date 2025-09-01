@@ -38,6 +38,12 @@ function mainCanvas() {
     return
   }
 
+  window.addEventListener("resize",function() {
+    canvas.height = canvas.clientHeight;
+    canvas.width = canvas.clientWidth;
+  })
+
+
   const gl = canvas.getContext("webgl2",{alpha: true})
   if (!gl) {
     console.error("could not get webgl context")
@@ -117,8 +123,8 @@ function mainCanvas() {
   canvas.height = canvas.clientHeight;
   canvas.width = canvas.clientWidth;
 
-  const textureWidth = canvas.width
-  const textureHeight = canvas.height
+  const textureWidth = 1000
+  const textureHeight = 1000
   const { screenFramebuffer, screenTexture } = createScreenFrameBufferAlpha(gl, textureWidth, textureHeight)
 
   gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -156,6 +162,9 @@ function mainCanvas() {
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     gl.useProgram(screenShader.program)
+
+    screenShader.set2f(gl, "uResolution", canvas.width, canvas.height)
+    screenShader.set2f(gl, "uTextureResolution", textureWidth,textureHeight)
 
     gl.activeTexture(gl.TEXTURE0)
     gl.bindTexture(gl.TEXTURE_2D, lavaLampTexture)

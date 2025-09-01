@@ -56,6 +56,11 @@ function mainCanvas() {
     return
   }
 
+  window.addEventListener("resize",function() {
+    canvas.height = canvas.clientHeight;
+    canvas.width = canvas.clientWidth;
+  })
+
   const loading = document.getElementById("loading") as HTMLCanvasElement;
   if (!loading) {
     console.error("cant find canvas");
@@ -131,7 +136,9 @@ function mainCanvas() {
 
   canvas.height = canvas.clientHeight;
   canvas.width = canvas.clientWidth;
-  const { screenFramebuffer, screenTexture } = createScreenFrameBuffer(gl, canvas.width, canvas.height)
+  const textureWidth = 1000
+  const textureHeight = 1000
+  const { screenFramebuffer, screenTexture } = createScreenFrameBuffer(gl, textureWidth,textureHeight)
 
   const frame = function() {
     canvas.height = canvas.clientHeight;
@@ -147,6 +154,8 @@ function mainCanvas() {
       gl.clear(gl.COLOR_BUFFER_BIT);
 
       gl.useProgram(blurShader.program)
+
+
 
       gl.activeTexture(gl.TEXTURE0)
       gl.bindTexture(gl.TEXTURE_2D, texture)
@@ -165,6 +174,8 @@ function mainCanvas() {
       gl.bindTexture(gl.TEXTURE_2D, screenTexture)
 
       screenShader.set1i(gl, "uImage", 0)
+      screenShader.set2f(gl, "uResolution", canvas.width, canvas.height)
+      screenShader.set2f(gl, "uTextureResolution", textureWidth,textureHeight)
 
       gl.bindVertexArray(vao)
       gl.drawElements(gl.TRIANGLES, Geometry.SQUARE_INDICES.length, gl.UNSIGNED_SHORT, 0);

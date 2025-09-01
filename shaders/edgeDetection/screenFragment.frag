@@ -5,6 +5,8 @@ out vec4 outputColor;
 in vec2 vTexCoord;
 
 uniform vec2 uResolution;
+uniform vec2 uTextureResolution;
+
 uniform sampler2D uImage;
 
 const float maxGradient = 2.0;
@@ -25,9 +27,13 @@ const float threshold = 0.1;
 
 void main() {
     vec2 uv = vec2(vTexCoord.x, vTexCoord.y);
-    vec3 color = texture(uImage, uv).xyz;
+    vec2 texRatio = uTextureResolution / uResolution;
+    vec2 scaledUV = uv / texRatio;
+    // vec2 offset = (1.0 - 1.0 / texRatio) * 0.5;
+    // vec2 centeredUV = scaledUV + offset;
 
-    vec2 texelSize = 1.0 / vec2(textureSize(uImage, 0));
+
+    vec2 texelSize = 1.0 / uTextureResolution;
 
     float gx = 0.0;
     float gy = 0.0;
@@ -36,7 +42,7 @@ void main() {
         for (int j = -1; j <= 1; j++) {
             int index = (i + 1) * 3 + (j + 1);
             vec2 offset = vec2(float(j), float(i)) * texelSize;
-            float gray = texture(uImage, uv + offset).x;
+            float gray = texture(uImage, scaledUV + offset).x;
             gx += gray * kernelX[index];
             gy += gray * kernelY[index];
         }
