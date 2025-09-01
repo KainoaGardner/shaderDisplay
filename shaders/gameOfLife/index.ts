@@ -19,7 +19,7 @@ class Setup {
   cellHeight: number = 0;
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
-  cellColor = "#FFF"
+  cellColor = "#FFFFFF"
 
   constructor(canvas:HTMLCanvasElement,ctx:CanvasRenderingContext2D,width:number,height:number){
     this.canvas = canvas
@@ -90,24 +90,37 @@ class Setup {
       }
     }
   }
+
+  createRandomGrid(spawnPercent:number){
+    for (let i = 0; i < this.height;i++){
+      for (let j = 0; j < this.width;j++){
+        if (Math.random() <= spawnPercent){
+          this.grid[i][j] = true
+        }else{
+          this.grid[i][j] = false
+        }
+      }
+    }
+  }
+
+  convertGridToTexData() {
+    const data = new Uint8Array(this.width * this.height * 4);
+    for (let r = 0;r < this.height;r++){
+      for (let c = 0;c < this.width;c++){
+        const i = ((this.height - r - 1) * this.width + c) * 4
+        data[i] = 0
+        data[i + 1] = 0
+        data[i + 2] = 0
+        data[i + 3] = this.grid[r][c] ? 255 : 0; 
+      }
+    }
+
+    return data;
+  }
+  
 }
 
-
-function main() {
-  if (location.hash === "#ui") {
-    const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-    if (!canvas) {
-      console.error("cant find canvas");
-      return
-    }
-    canvas.style.display = "none"
-
-    const canvas2d = document.getElementById("canvas2d") as HTMLCanvasElement;
-    if (!canvas2d) {
-      console.error("cant find canvas 2d");
-      return
-    }
-
+function UIInputs(){
     const setupUIDiv = document.getElementById("setup") as HTMLElement
     const simulationUIDiv = document.getElementById("simulation") as HTMLElement
     simulationUIDiv.style.display = "none"
@@ -131,12 +144,29 @@ function main() {
       sendClearToCanvas()
     });
 
+    const randomButton = document.getElementById("random") as HTMLElement;
+    randomButton.addEventListener("click", function() {
+      sendRandomToCanvas()
+    });
+
     const colorSelector = document.getElementById("color") as HTMLInputElement;
+    const colorSimSelector = document.getElementById("colorSim") as HTMLInputElement;
     colorSelector.addEventListener("change", function(event) {
       const input = event.target as HTMLInputElement
       const color = input.value
+
+      colorSimSelector.value = color
       sendColorToCanvas(color)
     });
+
+    colorSimSelector.addEventListener("change", function(event) {
+      const input = event.target as HTMLInputElement
+      const color = input.value
+
+      colorSelector.value = color
+      sendColorToCanvas(color)
+    });
+
 
     const sizeInput = document.getElementById("size") as HTMLInputElement;
     sizeInput.addEventListener("change", function(event) {
@@ -152,7 +182,41 @@ function main() {
       sendSizeToCanvas(size)
     });
 
+    const fpsElement = document.getElementById("fps") as HTMLElement;
+    if (!fpsElement) {
+      console.error("cant find fps element");
+      return
+    }
+
+    const fpsInput = document.getElementById("slider") as HTMLInputElement;
+    fpsInput.addEventListener("input", function(event) {
+      const input = event.target as HTMLInputElement
+      let fps = parseInt(input.value)
+      fpsElement.textContent = fps + " FPS"
+
+      sendFPSToCanvas(fps)
+    });
+
+}
+
+
+function main() {
+  if (location.hash === "#ui") {
+    const canvas = document.getElementById("canvas") as HTMLCanvasElement;
+    if (!canvas) {
+      console.error("cant find canvas");
+      return
+    }
+    canvas.style.display = "none"
+
+    const canvas2d = document.getElementById("canvas2d") as HTMLCanvasElement;
+    if (!canvas2d) {
+      console.error("cant find canvas 2d");
+      return
+    }
+
     canvas2d.style.display = "none"
+
 
     mainUI()
 
@@ -291,8 +355,7 @@ function mainCanvas() {
   let textureHeight = 10
 
   const spawnPercent = 0.1;
-  const startData = createInitialData(spawnPercent,textureWidth,textureHeight)
-  const { screenFramebuffer: fbA, screenTexture: texA } = createScreenFrameBufferAlpha(gl, textureWidth, textureHeight,startData)
+  const { screenFramebuffer: fbA, screenTexture: texA } = createScreenFrameBufferAlpha(gl, textureWidth, textureHeight)
   const { screenFramebuffer: fbB, screenTexture: texB } = createScreenFrameBufferAlpha(gl, textureWidth, textureHeight)
 
   let lastTexture = texA;
@@ -301,8 +364,8 @@ function mainCanvas() {
   let currFB = fbB;
 
   let lastFrameTime = performance.now()
-  const FPS = 10;
-  const timePerFrame = 1.0 / FPS
+  let FPS = 5;
+  let timePerFrame = 1.0 / FPS
 
   let currFrameTimeAmount = 0;
 
@@ -312,6 +375,7 @@ function mainCanvas() {
   const setup = new Setup(canvas2d,ctx,textureWidth,textureHeight)
 
   let screen = "setup";
+  let cellColor = HexToRGB(setup.cellColor)
 
   window.addEventListener("message", (event) => {
     if (event.data?.type === "START/STOP") {
@@ -323,6 +387,16 @@ function mainCanvas() {
         textureWidth = setup.width
         textureHeight = setup.height
 
+        const data = setup.convertGridToTexData()
+        const { screenFramebuffer: fbA, screenTexture: texA } = createScreenFrameBufferAlpha(gl, textureWidth, textureHeight,data)
+        const { screenFramebuffer: fbB, screenTexture: texB } = createScreenFrameBufferAlpha(gl, textureWidth, textureHeight)
+
+        lastTexture = texA;
+        lastFB = fbA;
+        currTexture = texB;
+        currFB = fbB;
+
+
       }else{
         screen = "setup"
         canvas2d.style.display = "block"
@@ -332,16 +406,26 @@ function mainCanvas() {
     if (event.data?.type === "CLEAR") {
       setup.clearGrid()
     }
+    if (event.data?.type === "RANDOM") {
+      setup.createRandomGrid(0.25)
+    }
     if (event.data?.type === "COLOR") {
       const color = event.data.value
       setup.cellColor = color
+      cellColor = HexToRGB(color)
     }
     if (event.data?.type === "SIZE") {
       const size = event.data.value
       setup.updateSize(size,size)
 
     }
+    if (event.data?.type === "FPS") {
+      const fps = event.data.value
+      FPS = fps;
+      timePerFrame = 1.0 / FPS
+    }
   })
+
 
   const frame = function() {
     switch (screen){
@@ -400,7 +484,7 @@ function mainCanvas() {
         gl.activeTexture(gl.TEXTURE0)
         gl.bindTexture(gl.TEXTURE_2D, currTexture)
     
-        screenShader.set3f(gl, "uCellColor", 1.0,0.0,0.0)
+        screenShader.set3f(gl, "uCellColor", cellColor[0],cellColor[1],cellColor[2])
         screenShader.set1i(gl, "uImage", 0)
     
         gl.bindVertexArray(screenVao)
@@ -419,6 +503,7 @@ function mainCanvas() {
 
 
 function mainUI() {
+  UIInputs()
   const loading = document.getElementById("loading") as HTMLCanvasElement;
   if (!loading) {
     console.error("cant find canvas");
@@ -426,17 +511,7 @@ function mainUI() {
   }
 
   loading.style.display = "none"
-}
 
-function createInitialData(spawnPercent: number,width:number, height:number) {
-  const data = new Uint8Array(width * height * 4);
-  for (let i = 0; i < data.length; i+= 4) {
-    data[i] = 0
-    data[i + 1] = 0
-    data[i + 2] = 0
-    data[i + 3] = Math.random() < spawnPercent ? 255 : 0; 
-  }
-  return data;
 }
 
 function sendStartToCanvas() {
@@ -444,6 +519,17 @@ function sendStartToCanvas() {
   for (let i = 0; i < frames.length; i++) {
     try {
       frames[i].postMessage({ type: "START/STOP" }, "*")
+    } catch (e) {
+
+    }
+  }
+}
+
+function sendRandomToCanvas() {
+  const frames = window.parent.frames;
+  for (let i = 0; i < frames.length; i++) {
+    try {
+      frames[i].postMessage({ type: "RANDOM" }, "*")
     } catch (e) {
 
     }
@@ -481,6 +567,31 @@ function sendSizeToCanvas(size: number) {
 
     }
   }
+}
+
+function sendFPSToCanvas(fps: number) {
+  const frames = window.parent.frames;
+  for (let i = 0; i < frames.length; i++) {
+    try {
+      frames[i].postMessage({ type: "FPS", value: fps }, "*")
+    } catch (e) {
+
+    }
+  }
+}
+
+function HexToRGB(hex:string): number[]{
+  let cleanHex = hex.startsWith("#") ? hex.slice(1) : hex
+  if (cleanHex.length === 3){
+     cleanHex = cleanHex[0] + cleanHex[0] +
+            cleanHex[1] + cleanHex[1] +
+            cleanHex[2] + cleanHex[2];
+  }
+
+  const r = parseInt(cleanHex.substring(0,2),16) / 255
+  const g = parseInt(cleanHex.substring(2,4),16) / 255
+  const b = parseInt(cleanHex.substring(4,6),16) / 255
+  return [r,g,b]
 }
 
 main()
