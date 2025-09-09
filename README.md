@@ -3,6 +3,11 @@ Site of some cool shaders I've made.
 
 <https://shaders.kainoagardner.xyz/>
 
+<a href="https://shaders.kainoagardner.xyz/">
+<img src=".github/shaders.png"
+     alt="Image"
+     style="float: left; margin-right: 10px; height: 500px" /></a>
+
 <h2>Shaders</h2>
 
 #### Shaders
