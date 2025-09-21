@@ -31,7 +31,7 @@ class Setup {
     toggleCell(mouse) {
         const xCell = Math.floor(mouse.x / this.cellWidth);
         const yCell = Math.floor(mouse.y / this.cellHeight);
-        if (0 <= xCell && xCell < this.grid[0].length && 0 <= yCell && yCell <= this.grid.length) {
+        if (0 <= xCell && xCell < this.grid[0].length && 0 <= yCell && yCell < this.grid.length) {
             if (mouse.pressed[0]) {
                 this.grid[yCell][xCell] = true;
             }
@@ -287,7 +287,7 @@ function mainCanvas() {
     canvas.width = canvas.clientWidth;
     let textureWidth = 10;
     let textureHeight = 10;
-    const spawnPercent = 0.1;
+    const spawnPercent = 0.25;
     const { screenFramebuffer: fbA, screenTexture: texA } = createScreenFrameBufferAlpha(gl, textureWidth, textureHeight);
     const { screenFramebuffer: fbB, screenTexture: texB } = createScreenFrameBufferAlpha(gl, textureWidth, textureHeight);
     let lastTexture = texA;
@@ -300,6 +300,14 @@ function mainCanvas() {
     let currFrameTimeAmount = 0;
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     const setup = new Setup(canvas2d, ctx, textureWidth, textureHeight);
+    window.addEventListener("resize", function () {
+        canvas.height = canvas.clientHeight;
+        canvas.width = canvas.clientWidth;
+        canvas2d.height = canvas2d.clientHeight;
+        canvas2d.width = canvas2d.clientWidth;
+        setup.cellWidth = setup.canvas.width / setup.width;
+        setup.cellHeight = setup.canvas.height / setup.height;
+    });
     let screen = "setup";
     let cellColor = HexToRGB(setup.cellColor);
     window.addEventListener("message", (event) => {
@@ -328,7 +336,7 @@ function mainCanvas() {
             setup.clearGrid();
         }
         if (event.data?.type === "RANDOM") {
-            setup.createRandomGrid(0.25);
+            setup.createRandomGrid(spawnPercent);
         }
         if (event.data?.type === "COLOR") {
             const color = event.data.value;

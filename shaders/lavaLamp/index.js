@@ -31,6 +31,10 @@ function mainCanvas() {
         console.error("cant find canvas");
         return;
     }
+    window.addEventListener("resize", function () {
+        canvas.height = canvas.clientHeight;
+        canvas.width = canvas.clientWidth;
+    });
     const gl = canvas.getContext("webgl2", { alpha: true });
     if (!gl) {
         console.error("could not get webgl context");
@@ -95,8 +99,8 @@ function mainCanvas() {
     loading.style.display = "none";
     canvas.height = canvas.clientHeight;
     canvas.width = canvas.clientWidth;
-    const textureWidth = canvas.width;
-    const textureHeight = canvas.height;
+    const textureWidth = 1000;
+    const textureHeight = 1000;
     const { screenFramebuffer, screenTexture } = createScreenFrameBufferAlpha(gl, textureWidth, textureHeight);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     const frame = function () {
@@ -123,6 +127,8 @@ function mainCanvas() {
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.useProgram(screenShader.program);
+        screenShader.set2f(gl, "uResolution", canvas.width, canvas.height);
+        screenShader.set2f(gl, "uTextureResolution", textureWidth, textureHeight);
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, lavaLampTexture);
         screenShader.set1i(gl, "uFrame", 0);
