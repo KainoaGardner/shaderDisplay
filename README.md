@@ -25,3 +25,4 @@ Site of some cool shaders I've made.
 > - Glitch
 > - Lava Lamp
 > - Conway's Game of Life
+> - Mandelbrot Set
