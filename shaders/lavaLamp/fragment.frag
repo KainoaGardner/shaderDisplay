@@ -179,7 +179,6 @@ void main() {
         }
         if (dist > MAX_DIST) break;
     }
-
     
     float t = dist * dist * 0.25;
     color = lavaPalette(t);
