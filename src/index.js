@@ -14,6 +14,7 @@ const shaders = [
     "glitch",
     "lavaLamp",
     "gameOfLife",
+    "mandelbrot",
 ];
 const shaderFrame = document.getElementById("shaderFrame");
 const uiFrame = document.getElementById("uiFrame");

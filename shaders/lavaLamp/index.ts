@@ -202,8 +202,8 @@ function mainUI() {
 
 const images: HTMLImageElement[] = [];
 function setup() {
-  loadImage("../../assets/lavaLamp/lavaLamp.png")
   loadImage("../../assets/lavaLamp/lavaLampMask.png")
+  loadImage("../../assets/lavaLamp/lavaLamp.png")
 }
 
 function checkImagesLoaded(): boolean {
