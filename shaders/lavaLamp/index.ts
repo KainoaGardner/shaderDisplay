@@ -106,7 +106,7 @@ function mainCanvas() {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images[0])
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images[0]!)
 
   const lavaLampMaskTexture = gl.createTexture();
   gl.activeTexture(gl.TEXTURE0);
@@ -116,7 +116,7 @@ function mainCanvas() {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images[1])
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images[1]!)
 
   loading.style.display = "none"
 
@@ -200,20 +200,29 @@ function mainUI() {
   loading.style.display = "none"
 }
 
-const images: HTMLImageElement[] = [];
+const imagePaths: string[] = [
+  "../../assets/lavaLamp/lavaLamp.png",
+  "../../assets/lavaLamp/lavaLampMask.png",
+]
+
+const images: (HTMLImageElement | null)[]  = new Array(imagePaths.length).fill(null);
 function setup() {
-  loadImage("../../assets/lavaLamp/lavaLampMask.png")
-  loadImage("../../assets/lavaLamp/lavaLamp.png")
+  for (let i = 0;i < imagePaths.length;i++){
+    loadImage(imagePaths[i],i)
+  }
 }
 
 function checkImagesLoaded(): boolean {
-  if (images.length === 2) {
-    return true
+  for (let i = 0; i < images.length;i++){
+    if (images[i] === null){
+      return false
+    }
   }
-  return false
+
+  return true
 }
 
-function loadImage(source: string) {
+function loadImage(source: string,index: number) {
   const image = new Image();
   if (!image) {
     console.error("Could not load image")
@@ -222,11 +231,15 @@ function loadImage(source: string) {
 
   image.src = source
   image.onload = function() {
-    images.push(image);
+    images[index] = image
     if (checkImagesLoaded()) {
       mainCanvas()
     }
   }
 }
 
+
+
 main()
+
+

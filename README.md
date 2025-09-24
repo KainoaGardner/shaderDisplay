@@ -26,3 +26,4 @@ Site of some cool shaders I've made.
 > - Lava Lamp
 > - Conway's Game of Life
 > - Mandelbrot Set
+> - Droste Effect

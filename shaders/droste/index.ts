@@ -3,6 +3,17 @@ import { Geometry } from "../../src/geometry"
 import fragmentSource from "./fragment.frag?raw"
 import vertexSource from "./vertex.vert?raw"
 
+function sendSliderToCanvas(type:string, value: string) {
+  const frames = window.parent.frames;
+  for (let i = 0; i < frames.length; i++) {
+    try {
+      frames[i].postMessage({ type: type, value: value }, "*")
+    } catch (e) {
+
+    }
+  }
+}
+
 function main() {
   if (location.hash === "#ui") {
     const canvas = document.getElementById("canvas") as HTMLCanvasElement;
@@ -83,6 +94,25 @@ function mainCanvas() {
     return null
   }
 
+  let stop = 2;
+  let angle = 5.0;
+  let zoom = 1.5;
+
+  window.addEventListener("message", (event) => {
+    if (event.data?.type === "ZOOM") {
+      let x = parseInt(event.data.value)
+      zoom = x * 0.1
+    }
+    if (event.data?.type === "COPY") {
+      let x = parseInt(event.data.value)
+      stop = x
+    }
+    if (event.data?.type === "ANGLE") {
+      let x = parseInt(event.data.value)
+      angle = x 
+    }
+  })
+
   canvas.height = canvas.clientHeight;
   canvas.width = canvas.clientWidth;
 
@@ -129,11 +159,13 @@ function mainCanvas() {
     gl.bindTexture(gl.TEXTURE_2D, mainTexture)
     shader.set1i(gl, "uImage", 0)
 
-    // gl.activeTexture(gl.TEXTURE0);
-    // gl.bindTexture(gl.TEXTURE_2D, maskTexture)
-    // shader.set1i(gl, "uMask", 0)
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, maskTexture)
+    shader.set1i(gl, "uMask", 1)
 
-    // shader.set2f(gl, "uResolution", canvas.width, canvas.height)
+    shader.set1f(gl, "uAngle", angle)
+    shader.set1f(gl, "uZoom", zoom)
+    shader.set1i(gl, "uStop", stop)
 
     gl.bindVertexArray(vao)
     gl.drawElements(gl.TRIANGLES, Geometry.SQUARE_INDICES.length, gl.UNSIGNED_SHORT, 0);
@@ -153,6 +185,23 @@ function mainUI() {
   }
 
   loading.style.display = "none"
+
+  const zoomSlider = document.getElementById("sliderZoom") as HTMLInputElement;
+  zoomSlider.addEventListener("input", function(event) {
+    sendSliderToCanvas("ZOOM",this.value)
+  });
+
+  const copySlider = document.getElementById("sliderCopy") as HTMLInputElement;
+  copySlider.addEventListener("input", function(event) {
+    sendSliderToCanvas("COPY",this.value)
+  });
+
+  const angleSlider = document.getElementById("sliderAngle") as HTMLInputElement;
+  angleSlider.addEventListener("input", function(event) {
+    sendSliderToCanvas("ANGLE",this.value)
+  });
+
+
 }
 
 
