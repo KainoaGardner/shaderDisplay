@@ -153,18 +153,25 @@ function mainUI() {
     }
     loading.style.display = "none";
 }
-const images = [];
+const imagePaths = [
+    "../../assets/lavaLamp/lavaLamp.png",
+    "../../assets/lavaLamp/lavaLampMask.png",
+];
+const images = new Array(imagePaths.length).fill(null);
 function setup() {
-    loadImage("../../assets/lavaLamp/lavaLamp.png");
-    loadImage("../../assets/lavaLamp/lavaLampMask.png");
+    for (let i = 0; i < imagePaths.length; i++) {
+        loadImage(imagePaths[i], i);
+    }
 }
 function checkImagesLoaded() {
-    if (images.length === 2) {
-        return true;
+    for (let i = 0; i < images.length; i++) {
+        if (images[i] === null) {
+            return false;
+        }
     }
-    return false;
+    return true;
 }
-function loadImage(source) {
+function loadImage(source, index) {
     const image = new Image();
     if (!image) {
         console.error("Could not load image");
@@ -172,7 +179,7 @@ function loadImage(source) {
     }
     image.src = source;
     image.onload = function () {
-        images.push(image);
+        images[index] = image;
         if (checkImagesLoaded()) {
             mainCanvas();
         }
