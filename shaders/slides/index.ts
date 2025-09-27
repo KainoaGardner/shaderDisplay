@@ -1,8 +1,19 @@
 import { Shader } from "../../src/utils"
 import { Geometry } from "../../src/geometry"
+import slideHoriFragmentSource from "./slideHori.frag?raw"
 import fragmentSource from "./fragment.frag?raw"
 import vertexSource from "./vertex.vert?raw"
 
+function sendTransitionToCanvas(type:string) {
+  const frames = window.parent.frames;
+  for (let i = 0; i < frames.length; i++) {
+    try {
+      frames[i].postMessage({ type: type }, "*")
+    } catch (e) {
+
+    }
+  }
+}
 
 function main() {
   if (location.hash === "#ui") {
@@ -54,6 +65,11 @@ function mainCanvas() {
     return;
   }
 
+  const slideHoriShader = new Shader(gl, vertexSource, slideHoriFragmentSource)
+  if (!slideHoriShader.valid) {
+    console.error("could not make shader hori")
+    return;
+  }
 
   const aPositionAttribute = gl.getAttribLocation(shader.program, "aPosition");
   if (aPositionAttribute < 0) {
@@ -66,7 +82,6 @@ function mainCanvas() {
     console.error("Could not find attribuites")
     return null
   }
-
 
   const vao = Geometry.createPosTexGeometry(gl,
     Geometry.SQUARE_VERTICES,
@@ -84,11 +99,6 @@ function mainCanvas() {
     return null
   }
 
-  let stop = 2;
-  let angle = 5.0;
-  let zoom = 1.5;
-
-
   canvas.height = canvas.clientHeight;
   canvas.width = canvas.clientWidth;
 
@@ -103,7 +113,7 @@ function mainCanvas() {
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images[0]!)
 
   const slide2Texture = gl.createTexture();
-  gl.activeTexture(gl.TEXTURE0);
+  gl.activeTexture(gl.TEXTURE1);
   gl.bindTexture(gl.TEXTURE_2D, slide2Texture)
 
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -112,56 +122,53 @@ function mainCanvas() {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images[1]!)
 
-
-
+  
   loading.style.display = "none"
 
-  let lastFrameTime = performance.now()
-  let FPS = 5;
-  let timePerFrame = 1.0 / FPS
-
-  let currFrameTimeAmount = 0;
-
+  let currShader = shader;
+  let transition = ""
+  let mainImage = 0;
   let startTime = performance.now()
+  let reverse = 1.0;
 
+  window.addEventListener("message", (event) => {
+    if (transition === ""){
+      startTime = performance.now()
+      transition = event.data?.type
+    }
+  })
 
   gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
   gl.enable(gl.BLEND);
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, null)
   const frame = function() {
-
-
     canvas.height = canvas.clientHeight;
     canvas.width = canvas.clientWidth;
 
-
     const currFrameTime = performance.now()
-    const dt = (currFrameTime - lastFrameTime) / 1000;
-    lastFrameTime = currFrameTime
-    currFrameTimeAmount += dt
-
     const timePassed = (currFrameTime - startTime) / 1000;
     
-    if (currFrameTimeAmount > timePerFrame){
-      currFrameTimeAmount = currFrameTimeAmount % timePerFrame
-    }
-
     gl.viewport(0, 0, canvas.width, canvas.height)
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    gl.useProgram(shader.program)
-
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, slide1Texture)
-    shader.set1i(gl, "uSlide1", 0)
-
-    gl.activeTexture(gl.TEXTURE1);
-    gl.bindTexture(gl.TEXTURE_2D, slide2Texture)
-    shader.set1i(gl, "uSlide2", 1)
-
-    shader.set1f(gl, "uTime", timePassed)
+    switch (transition){
+      case "slideHori":
+        currShader = slideHoriShader
+        gl.useProgram(currShader.program)
+        slideHori(gl,currShader,mainImage,timePassed,reverse)
+        if (timePassed * 0.75 >= 1.0){
+          transition = ""
+          currShader = shader
+          mainImage = (mainImage + 1) % 2
+        }
+        break;
+      default:
+        gl.useProgram(currShader.program)
+        defaultSetup(gl,currShader,mainImage)
+      break
+    }
 
     gl.bindVertexArray(vao)
     gl.drawElements(gl.TRIANGLES, Geometry.SQUARE_INDICES.length, gl.UNSIGNED_SHORT, 0);
@@ -173,6 +180,19 @@ function mainCanvas() {
   requestAnimationFrame(frame);
 }
 
+function defaultSetup(gl:WebGL2RenderingContext,currShader:Shader,mainImage:number){
+    currShader.set1i(gl,"uSlide1",mainImage)
+}
+
+function slideHori(gl:WebGL2RenderingContext,currShader:Shader,mainImage:number,timePassed:number,reverse:number){
+  currShader.set1i(gl,"uSlide1",mainImage)
+  currShader.set1i(gl,"uSlide2",(mainImage + 1) % 2)
+
+  currShader.set1f(gl, "uTime", timePassed)
+  currShader.set1f(gl,"uReverse",reverse)
+}
+
+
 function mainUI() {
   const loading = document.getElementById("loading") as HTMLCanvasElement;
   if (!loading) {
@@ -181,6 +201,11 @@ function mainUI() {
   }
 
   loading.style.display = "none"
+
+  const horiButton = document.getElementById("hori") as HTMLElement;
+  horiButton.addEventListener("click", function() {
+    sendTransitionToCanvas("slideHori")
+  });
 }
 
 
