@@ -49,7 +49,7 @@ h2 {
   margin: 0vh 0vh;
 }
 
-h3 {
+h3,label{
   font-size: 10vh;
   margin: 0vh 0vh;
 }
@@ -68,6 +68,14 @@ input {
   background: #111;
   color: white;
   width: 60vh;
+}
+
+.check {
+  padding: 5vh 5vh;
+  font-size: 10vh;
+  margin-inline: 2vh;
+  width: 20vh;
+  height: 20vh;
 }
 
 .copyButton {

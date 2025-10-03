@@ -25,12 +25,12 @@ void main() {
     vec2 uv = vec2(vTexCoord.x, 1.0 - vTexCoord.y);
     vec2 uv2 = vec2(vTexCoord.x, 1.0 - vTexCoord.y);
 
-    uv2.x -= 1.0 * uReverse;
+    uv2.y -= 1.0 * uReverse;
     
     float moveAmount = min(uTime * uSpeed,1.0) * uReverse;
 
-    uv += vec2(moveAmount ,0.0);
-    uv2 += vec2(moveAmount ,0.0);
+    uv += vec2(0.0,moveAmount);
+    uv2 += vec2(0.0,moveAmount);
 
     float slide1InBounds = step(0.0,uv.x) * step(uv.x,1.0) * step(borderLength,uv.y) * step(uv.y,1.0 - borderLength);
     float slide2InBounds = step(0.0,uv2.x) * step(uv2.x,1.0) * step(borderLength,uv2.y) * step(uv2.y,1.0 - borderLength);
@@ -38,6 +38,7 @@ void main() {
     uv.y = (uv.y - 0.5) * targetAspect + 0.5;
     uv = (uv - 0.5) * 0.8 + 0.5;
     uv.x -= 0.125;
+
     uv2.y = (uv2.y - 0.5) * targetAspect + 0.5;
     uv2 = (uv2 - 0.5) * 0.8 + 0.5;
     uv2.x -= 0.125;
@@ -50,4 +51,3 @@ void main() {
     vec3 finalColor = mix(slide2Color,slide1Color,slide1InBounds);
     outputColor = vec4(finalColor, 1.0);
 }
-

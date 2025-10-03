@@ -1,6 +1,7 @@
 import { Shader } from "../../src/utils"
 import { Geometry } from "../../src/geometry"
 import slideHoriFragmentSource from "./slideHori.frag?raw"
+import slideVertFragmentSource from "./slideVert.frag?raw"
 import fragmentSource from "./fragment.frag?raw"
 import vertexSource from "./vertex.vert?raw"
 
@@ -71,6 +72,12 @@ function mainCanvas() {
     return;
   }
 
+  const slideVertShader = new Shader(gl, vertexSource, slideVertFragmentSource)
+  if (!slideVertShader.valid) {
+    console.error("could not make shader vert")
+    return;
+  }
+
   const aPositionAttribute = gl.getAttribLocation(shader.program, "aPosition");
   if (aPositionAttribute < 0) {
     console.error("Could not find attribuites")
@@ -130,9 +137,12 @@ function mainCanvas() {
   let mainImage = 0;
   let startTime = performance.now()
   let reverse = 1.0;
+  let speed = 1.5;
 
   window.addEventListener("message", (event) => {
-    if (transition === ""){
+    if (event.data?.type === "reverseToggle"){
+      reverse *= -1
+    } else if (transition === ""){
       startTime = performance.now()
       transition = event.data?.type
     }
@@ -157,8 +167,18 @@ function mainCanvas() {
       case "slideHori":
         currShader = slideHoriShader
         gl.useProgram(currShader.program)
-        slideHori(gl,currShader,mainImage,timePassed,reverse)
-        if (timePassed * 0.75 >= 1.0){
+        drawTransition(gl,currShader,mainImage,timePassed,reverse,speed)
+        if (timePassed * speed >= 1.0){
+          transition = ""
+          currShader = shader
+          mainImage = (mainImage + 1) % 2
+        }
+        break;
+      case "slideVert":
+        currShader = slideVertShader
+        gl.useProgram(currShader.program)
+        drawTransition(gl,currShader,mainImage,timePassed,reverse,speed)
+        if (timePassed * speed >= 1.0){
           transition = ""
           currShader = shader
           mainImage = (mainImage + 1) % 2
@@ -184,12 +204,21 @@ function defaultSetup(gl:WebGL2RenderingContext,currShader:Shader,mainImage:numb
     currShader.set1i(gl,"uSlide1",mainImage)
 }
 
-function slideHori(gl:WebGL2RenderingContext,currShader:Shader,mainImage:number,timePassed:number,reverse:number){
+// function slideHori(gl:WebGL2RenderingContext,currShader:Shader,mainImage:number,timePassed:number,reverse:number){
+//   currShader.set1i(gl,"uSlide1",mainImage)
+//   currShader.set1i(gl,"uSlide2",(mainImage + 1) % 2)
+//
+//   currShader.set1f(gl, "uTime", timePassed)
+//   currShader.set1f(gl,"uReverse",reverse)
+// }
+
+function drawTransition(gl:WebGL2RenderingContext,currShader:Shader,mainImage:number,timePassed:number,reverse:number,speed:number){
   currShader.set1i(gl,"uSlide1",mainImage)
   currShader.set1i(gl,"uSlide2",(mainImage + 1) % 2)
 
   currShader.set1f(gl, "uTime", timePassed)
   currShader.set1f(gl,"uReverse",reverse)
+  currShader.set1f(gl, "uSpeed", speed)
 }
 
 
@@ -202,10 +231,22 @@ function mainUI() {
 
   loading.style.display = "none"
 
+  const reverseBox = document.getElementById("reverse") as HTMLElement;
+  reverseBox.addEventListener("change", function() {
+    sendTransitionToCanvas("reverseToggle")
+  });
+
   const horiButton = document.getElementById("hori") as HTMLElement;
   horiButton.addEventListener("click", function() {
     sendTransitionToCanvas("slideHori")
   });
+
+  const vertButton = document.getElementById("vert") as HTMLElement;
+  vertButton.addEventListener("click", function() {
+    sendTransitionToCanvas("slideVert")
+  });
+
+
 }
 
 
