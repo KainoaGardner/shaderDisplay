@@ -4,7 +4,10 @@ import slideHoriFragmentSource from "./slideHori.frag?raw"
 import slideVertFragmentSource from "./slideVert.frag?raw"
 import fadeFragmentSource from "./fade.frag?raw"
 import dissolveFragmentSource from "./dissolve.frag?raw"
+import blockFragmentSource from "./block.frag?raw"
 import spiralFragmentSource from "./spiral.frag?raw"
+import circleFragmentSource from "./circle.frag?raw"
+import clockFragmentSource from "./clock.frag?raw"
 
 import fragmentSource from "./fragment.frag?raw"
 import vertexSource from "./vertex.vert?raw"
@@ -94,12 +97,29 @@ function mainCanvas() {
     return;
   }
 
+  const blockShader = new Shader(gl, vertexSource, blockFragmentSource)
+  if (!blockShader.valid) {
+    console.error("could not make shader block")
+    return;
+  }
+
   const spiralShader = new Shader(gl, vertexSource, spiralFragmentSource)
   if (!spiralShader.valid) {
     console.error("could not make shader spiral")
     return;
   }
 
+  const circleShader = new Shader(gl, vertexSource, circleFragmentSource)
+  if (!circleShader.valid) {
+    console.error("could not make shader circle")
+    return;
+  }
+
+  const clockShader = new Shader(gl, vertexSource, clockFragmentSource)
+  if (!clockShader.valid) {
+    console.error("could not make shader clock")
+    return;
+  }
 
   const aPositionAttribute = gl.getAttribLocation(shader.program, "aPosition");
   if (aPositionAttribute < 0) {
@@ -210,10 +230,23 @@ function mainCanvas() {
           currShader = dissolveShader
           drawTransition(gl,currShader,mainImage,timePassed,reverse,speed)
           break;
+        case "block":
+          currShader = blockShader
+          drawTransition(gl,currShader,mainImage,timePassed,reverse,speed)
+          break;
         case "spiral":
           currShader = spiralShader
           drawTransition(gl,currShader,mainImage,timePassed,reverse,speed)
           break;
+        case "circle":
+          currShader = circleShader
+          drawTransition(gl,currShader,mainImage,timePassed,reverse,speed)
+          break;
+        case "clock":
+          currShader = clockShader
+          drawTransition(gl,currShader,mainImage,timePassed,reverse,speed)
+          break;
+
       }
       if (timePassed * speed >= 1.0){
         transition = ""
@@ -295,12 +328,28 @@ function mainUI() {
     sendTransitionToCanvas("dissolve")
   });
 
+  const blockButton = document.getElementById("block") as HTMLElement;
+  blockButton.addEventListener("click", function() {
+    sendTransitionToCanvas("block")
+  });
+
   const spiralButton = document.getElementById("spiral") as HTMLElement;
   spiralButton.addEventListener("click", function() {
     sendTransitionToCanvas("spiral")
   });
 
+  const circleButton = document.getElementById("circle") as HTMLElement;
+  circleButton.addEventListener("click", function() {
+    sendTransitionToCanvas("circle")
+  });
+
+  const clockButton = document.getElementById("clock") as HTMLElement;
+  clockButton.addEventListener("click", function() {
+    sendTransitionToCanvas("clock")
+  });
+
 }
+
 
 
 const imagePaths: string[] = [
