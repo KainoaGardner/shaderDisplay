@@ -114,4 +114,16 @@ body,html {
   height: 100%;
 }
 
+.slideButton {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 10vh;
+  padding: 4vh 8vh;
+  margin: 0vh 1vh;
+  border: none;
+  border-radius: 2vh;
+
+}
+
 

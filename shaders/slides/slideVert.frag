@@ -1,8 +1,6 @@
 #version 300 es
 precision mediump float;
 
-#define MAX_ITERATIONS 100
-
 out vec4 outputColor;
 in vec2 vTexCoord;
 

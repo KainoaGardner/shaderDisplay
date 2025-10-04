@@ -2,6 +2,10 @@ import { Shader } from "../../src/utils"
 import { Geometry } from "../../src/geometry"
 import slideHoriFragmentSource from "./slideHori.frag?raw"
 import slideVertFragmentSource from "./slideVert.frag?raw"
+import fadeFragmentSource from "./fade.frag?raw"
+import dissolveFragmentSource from "./dissolve.frag?raw"
+import spiralFragmentSource from "./spiral.frag?raw"
+
 import fragmentSource from "./fragment.frag?raw"
 import vertexSource from "./vertex.vert?raw"
 
@@ -78,6 +82,25 @@ function mainCanvas() {
     return;
   }
 
+  const fadeShader = new Shader(gl, vertexSource, fadeFragmentSource)
+  if (!fadeShader.valid) {
+    console.error("could not make shader fade")
+    return;
+  }
+
+  const dissolveShader = new Shader(gl, vertexSource, dissolveFragmentSource)
+  if (!dissolveShader.valid) {
+    console.error("could not make shader dissolve")
+    return;
+  }
+
+  const spiralShader = new Shader(gl, vertexSource, spiralFragmentSource)
+  if (!spiralShader.valid) {
+    console.error("could not make shader spiral")
+    return;
+  }
+
+
   const aPositionAttribute = gl.getAttribLocation(shader.program, "aPosition");
   if (aPositionAttribute < 0) {
     console.error("Could not find attribuites")
@@ -138,10 +161,14 @@ function mainCanvas() {
   let startTime = performance.now()
   let reverse = 1.0;
   let speed = 1.5;
+  let reverseOn = false;
 
   window.addEventListener("message", (event) => {
     if (event.data?.type === "reverseToggle"){
-      reverse *= -1
+      reverseOn = !reverseOn
+      if (transition === ""){
+        reverse *= -1
+      }
     } else if (transition === ""){
       startTime = performance.now()
       transition = event.data?.type
@@ -163,31 +190,42 @@ function mainCanvas() {
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    switch (transition){
-      case "slideHori":
-        currShader = slideHoriShader
-        gl.useProgram(currShader.program)
-        drawTransition(gl,currShader,mainImage,timePassed,reverse,speed)
-        if (timePassed * speed >= 1.0){
-          transition = ""
-          currShader = shader
-          mainImage = (mainImage + 1) % 2
+    if (transition === ""){
+      defaultRender(gl,currShader,mainImage)
+    }else {
+      switch (transition){
+        case "slideHori":
+          currShader = slideHoriShader
+          drawTransition(gl,currShader,mainImage,timePassed,reverse,speed)
+          break;
+        case "slideVert":
+          currShader = slideVertShader
+          drawTransition(gl,currShader,mainImage,timePassed,reverse,speed)
+          break;
+        case "fade":
+          currShader = fadeShader
+          drawFade(gl,currShader,mainImage,timePassed,speed)
+          break;
+        case "dissolve":
+          currShader = dissolveShader
+          drawTransition(gl,currShader,mainImage,timePassed,reverse,speed)
+          break;
+        case "spiral":
+          currShader = spiralShader
+          drawTransition(gl,currShader,mainImage,timePassed,reverse,speed)
+          break;
+      }
+      if (timePassed * speed >= 1.0){
+        transition = ""
+        currShader = shader
+        mainImage = (mainImage + 1) % 2
+
+        if (reverseOn){
+          reverse = -1.0;
+        }else{
+          reverse = 1.0;
         }
-        break;
-      case "slideVert":
-        currShader = slideVertShader
-        gl.useProgram(currShader.program)
-        drawTransition(gl,currShader,mainImage,timePassed,reverse,speed)
-        if (timePassed * speed >= 1.0){
-          transition = ""
-          currShader = shader
-          mainImage = (mainImage + 1) % 2
-        }
-        break;
-      default:
-        gl.useProgram(currShader.program)
-        defaultSetup(gl,currShader,mainImage)
-      break
+      }
     }
 
     gl.bindVertexArray(vao)
@@ -196,23 +234,16 @@ function mainCanvas() {
 
     requestAnimationFrame(frame);
   }
-
   requestAnimationFrame(frame);
 }
 
-function defaultSetup(gl:WebGL2RenderingContext,currShader:Shader,mainImage:number){
+function defaultRender(gl:WebGL2RenderingContext,currShader:Shader,mainImage:number){
+    gl.useProgram(currShader.program)
     currShader.set1i(gl,"uSlide1",mainImage)
 }
 
-// function slideHori(gl:WebGL2RenderingContext,currShader:Shader,mainImage:number,timePassed:number,reverse:number){
-//   currShader.set1i(gl,"uSlide1",mainImage)
-//   currShader.set1i(gl,"uSlide2",(mainImage + 1) % 2)
-//
-//   currShader.set1f(gl, "uTime", timePassed)
-//   currShader.set1f(gl,"uReverse",reverse)
-// }
-
 function drawTransition(gl:WebGL2RenderingContext,currShader:Shader,mainImage:number,timePassed:number,reverse:number,speed:number){
+  gl.useProgram(currShader.program)
   currShader.set1i(gl,"uSlide1",mainImage)
   currShader.set1i(gl,"uSlide2",(mainImage + 1) % 2)
 
@@ -221,6 +252,14 @@ function drawTransition(gl:WebGL2RenderingContext,currShader:Shader,mainImage:nu
   currShader.set1f(gl, "uSpeed", speed)
 }
 
+function drawFade(gl:WebGL2RenderingContext,currShader:Shader,mainImage:number,timePassed:number,speed:number){
+  gl.useProgram(currShader.program)
+  currShader.set1i(gl,"uSlide1",mainImage)
+  currShader.set1i(gl,"uSlide2",(mainImage + 1) % 2)
+
+  currShader.set1f(gl, "uTime", timePassed)
+  currShader.set1f(gl, "uSpeed", speed)
+}
 
 function mainUI() {
   const loading = document.getElementById("loading") as HTMLCanvasElement;
@@ -246,6 +285,20 @@ function mainUI() {
     sendTransitionToCanvas("slideVert")
   });
 
+  const fadeButton = document.getElementById("fade") as HTMLElement;
+  fadeButton.addEventListener("click", function() {
+    sendTransitionToCanvas("fade")
+  });
+
+  const dissolveButton = document.getElementById("dissolve") as HTMLElement;
+  dissolveButton.addEventListener("click", function() {
+    sendTransitionToCanvas("dissolve")
+  });
+
+  const spiralButton = document.getElementById("spiral") as HTMLElement;
+  spiralButton.addEventListener("click", function() {
+    sendTransitionToCanvas("spiral")
+  });
 
 }
 
