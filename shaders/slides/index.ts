@@ -1,3 +1,5 @@
+import { mat4, vec3, vec2 } from "gl-matrix"
+
 import { Shader } from "../../src/utils"
 import { Geometry } from "../../src/geometry"
 import slideHoriFragmentSource from "./slideHori.frag?raw"
@@ -8,6 +10,9 @@ import blockFragmentSource from "./block.frag?raw"
 import spiralFragmentSource from "./spiral.frag?raw"
 import circleFragmentSource from "./circle.frag?raw"
 import clockFragmentSource from "./clock.frag?raw"
+
+import rotateFragmentSource from "./rotate.frag?raw"
+import rotateVertexSource from "./rotate.vert?raw"
 
 import fragmentSource from "./fragment.frag?raw"
 import vertexSource from "./vertex.vert?raw"
@@ -121,6 +126,18 @@ function mainCanvas() {
     return;
   }
 
+  const rotateShader = new Shader(gl, rotateVertexSource, rotateFragmentSource)
+  if (!rotateShader.valid) {
+    console.error("could not make shader rotate")
+    return;
+  }
+
+  // const cubeShader = new Shader(gl, rotateVertexSource, cubeFragmentSource)
+  // if (!cubeShader.valid) {
+  //   console.error("could not make shader cube")
+  //   return;
+  // }
+
   const aPositionAttribute = gl.getAttribLocation(shader.program, "aPosition");
   if (aPositionAttribute < 0) {
     console.error("Could not find attribuites")
@@ -195,8 +212,17 @@ function mainCanvas() {
     }
   })
 
+
+  const fov = Math.PI / 4;
+  const aspect = canvas.width / canvas.height;
+  const near = 1.0;
+  const far = 100.0;
+  const projectionMatrix = mat4.create()
+  mat4.perspective(projectionMatrix, fov, aspect, near, far);
+
   gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
   gl.enable(gl.BLEND);
+  gl.enable(gl.DEPTH_TEST);
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, null)
   const frame = function() {
@@ -207,47 +233,12 @@ function mainCanvas() {
     const timePassed = (currFrameTime - startTime) / 1000;
     
     gl.viewport(0, 0, canvas.width, canvas.height)
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.clearColor(0.2, 0.2, 0.2, 1.0);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     if (transition === ""){
-      defaultRender(gl,currShader,mainImage)
+      defaultRender(gl,vao,currShader,mainImage)
     }else {
-      switch (transition){
-        case "slideHori":
-          currShader = slideHoriShader
-          drawTransition(gl,currShader,mainImage,timePassed,reverse,speed)
-          break;
-        case "slideVert":
-          currShader = slideVertShader
-          drawTransition(gl,currShader,mainImage,timePassed,reverse,speed)
-          break;
-        case "fade":
-          currShader = fadeShader
-          drawFade(gl,currShader,mainImage,timePassed,speed)
-          break;
-        case "dissolve":
-          currShader = dissolveShader
-          drawTransition(gl,currShader,mainImage,timePassed,reverse,speed)
-          break;
-        case "block":
-          currShader = blockShader
-          drawTransition(gl,currShader,mainImage,timePassed,reverse,speed)
-          break;
-        case "spiral":
-          currShader = spiralShader
-          drawTransition(gl,currShader,mainImage,timePassed,reverse,speed)
-          break;
-        case "circle":
-          currShader = circleShader
-          drawTransition(gl,currShader,mainImage,timePassed,reverse,speed)
-          break;
-        case "clock":
-          currShader = clockShader
-          drawTransition(gl,currShader,mainImage,timePassed,reverse,speed)
-          break;
-
-      }
       if (timePassed * speed >= 1.0){
         transition = ""
         currShader = shader
@@ -259,23 +250,66 @@ function mainCanvas() {
           reverse = 1.0;
         }
       }
+
+      switch (transition){
+        case "slideHori":
+          currShader = slideHoriShader
+          drawTransition(gl,vao,currShader,mainImage,timePassed,reverse,speed)
+          break;
+        case "slideVert":
+          currShader = slideVertShader
+          drawTransition(gl,vao,currShader,mainImage,timePassed,reverse,speed)
+          break;
+        case "fade":
+          currShader = fadeShader
+          drawFade(gl,vao,currShader,mainImage,timePassed,speed)
+          break;
+        case "dissolve":
+          currShader = dissolveShader
+          drawTransition(gl,vao,currShader,mainImage,timePassed,reverse,speed)
+          break;
+        case "block":
+          currShader = blockShader
+          drawTransition(gl,vao,currShader,mainImage,timePassed,reverse,speed)
+          break;
+        case "spiral":
+          currShader = spiralShader
+          drawTransition(gl,vao,currShader,mainImage,timePassed,reverse,speed)
+          break;
+        case "circle":
+          currShader = circleShader
+          drawTransition(gl,vao,currShader,mainImage,timePassed,reverse,speed)
+          break;
+        case "clock":
+          currShader = clockShader
+          drawTransition(gl,vao,currShader,mainImage,timePassed,reverse,speed)
+          break;
+        case "rotate":
+          currShader = rotateShader
+          drawRotate(gl,vao,currShader,mainImage,timePassed,reverse,speed,projectionMatrix)
+          break;
+        case "cube":
+          currShader = rotateShader
+          drawCube(gl,vao,currShader,mainImage,timePassed,reverse,speed,projectionMatrix)
+          break;
+      }
     }
 
     gl.bindVertexArray(vao)
     gl.drawElements(gl.TRIANGLES, Geometry.SQUARE_INDICES.length, gl.UNSIGNED_SHORT, 0);
     gl.bindVertexArray(null)
-
+ 
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
 }
 
-function defaultRender(gl:WebGL2RenderingContext,currShader:Shader,mainImage:number){
+function defaultRender(gl:WebGL2RenderingContext,vao:WebGLVertexArrayObject,currShader:Shader,mainImage:number){
     gl.useProgram(currShader.program)
     currShader.set1i(gl,"uSlide1",mainImage)
 }
 
-function drawTransition(gl:WebGL2RenderingContext,currShader:Shader,mainImage:number,timePassed:number,reverse:number,speed:number){
+function drawTransition(gl:WebGL2RenderingContext, vao:WebGLVertexArrayObject,currShader:Shader,mainImage:number,timePassed:number,reverse:number,speed:number){
   gl.useProgram(currShader.program)
   currShader.set1i(gl,"uSlide1",mainImage)
   currShader.set1i(gl,"uSlide2",(mainImage + 1) % 2)
@@ -285,13 +319,109 @@ function drawTransition(gl:WebGL2RenderingContext,currShader:Shader,mainImage:nu
   currShader.set1f(gl, "uSpeed", speed)
 }
 
-function drawFade(gl:WebGL2RenderingContext,currShader:Shader,mainImage:number,timePassed:number,speed:number){
+function drawFade(gl:WebGL2RenderingContext,vao:WebGLVertexArrayObject,currShader:Shader,mainImage:number,timePassed:number,speed:number){
   gl.useProgram(currShader.program)
   currShader.set1i(gl,"uSlide1",mainImage)
   currShader.set1i(gl,"uSlide2",(mainImage + 1) % 2)
 
   currShader.set1f(gl, "uTime", timePassed)
   currShader.set1f(gl, "uSpeed", speed)
+}
+
+function drawRotate(
+  gl:WebGL2RenderingContext,
+  vao:WebGLVertexArrayObject,
+  currShader:Shader,
+  mainImage:number,
+  timePassed:number,
+  reverse:number,
+  speed:number,
+  projectionMatrix:mat4){
+
+  gl.useProgram(currShader.program)
+  const modelMatrix = mat4.create()
+  const translate = vec3.fromValues(0.0, 0.0, -2.0);
+  const s = 0.83;
+  const scale = vec3.fromValues(s,s,s);
+  let angle = 0.0;
+  angle += (timePassed * speed) * Math.PI * reverse;
+
+  let slide = 0.0;
+  if (Math.abs(angle) > Math.PI / 2){
+    slide = 1.0
+  }
+
+  mat4.translate(modelMatrix, modelMatrix, translate)
+  mat4.rotate(modelMatrix, modelMatrix, angle, [0, 1, 0])
+  mat4.scale(modelMatrix, modelMatrix, scale)
+  
+  currShader.setMat4fv(gl, "uModel", modelMatrix)
+  currShader.setMat4fv(gl, "uProjection", projectionMatrix)
+
+  currShader.set1i(gl,"uSlide1",mainImage)
+  currShader.set1i(gl,"uSlide2",(mainImage + 1) % 2)
+
+  currShader.set1f(gl,"uSlide",slide)
+}
+
+function drawCube(
+  gl:WebGL2RenderingContext,
+  vao:WebGLVertexArrayObject,
+  currShader:Shader,
+  mainImage:number,
+  timePassed:number,
+  reverse:number,
+  speed:number,
+  projectionMatrix:mat4){
+
+  gl.useProgram(currShader.program)
+  let modelMatrix = mat4.create()
+  const translateRotate = vec3.fromValues(0.0, 0.0, -0.83);
+  const translate = vec3.fromValues(0.0, 0.0, -2.83);
+  const s = 0.83;
+  const scale = vec3.fromValues(s,s,s);
+  let angle = Math.PI;
+  // let angle = 0;
+  angle -= (timePassed * speed) * Math.PI / 2.0 * reverse;
+
+  mat4.translate(modelMatrix, modelMatrix, translate)
+  mat4.rotate(modelMatrix, modelMatrix, angle, [0, 1, 0])
+  mat4.translate(modelMatrix, modelMatrix, translateRotate)
+  mat4.scale(modelMatrix, modelMatrix, scale)
+  
+  currShader.setMat4fv(gl, "uModel", modelMatrix)
+  currShader.setMat4fv(gl, "uProjection", projectionMatrix)
+
+  currShader.set1i(gl,"uSlide1",mainImage)
+  currShader.set1i(gl,"uSlide2",mainImage)
+
+  currShader.set1f(gl,"uSlide",1.0)
+
+  gl.bindVertexArray(vao)
+  gl.drawElements(gl.TRIANGLES, Geometry.SQUARE_INDICES.length, gl.UNSIGNED_SHORT, 0);
+
+  angle = Math.PI * 1.5 * reverse;
+  // let angle = 0;
+  angle -= (timePassed * speed) * Math.PI / 2.0 * reverse;
+
+
+  modelMatrix = mat4.create()
+  mat4.translate(modelMatrix, modelMatrix, translate)
+  mat4.rotate(modelMatrix, modelMatrix, angle, [0, 1, 0])
+  mat4.translate(modelMatrix, modelMatrix, translateRotate)
+  mat4.scale(modelMatrix, modelMatrix, scale)
+  
+  currShader.setMat4fv(gl, "uModel", modelMatrix)
+  currShader.setMat4fv(gl, "uProjection", projectionMatrix)
+
+  currShader.set1i(gl,"uSlide1",(mainImage + 1) % 2)
+  currShader.set1i(gl,"uSlide2",(mainImage + 1) % 2)
+
+  currShader.set1f(gl,"uSlide",1.0)
+
+  // gl.drawElements(gl.TRIANGLES, Geometry.SQUARE_INDICES.length, gl.UNSIGNED_SHORT, 0);
+  // gl.bindVertexArray(null)
+
 }
 
 function mainUI() {
@@ -348,9 +478,17 @@ function mainUI() {
     sendTransitionToCanvas("clock")
   });
 
+  const rotateButton = document.getElementById("rotate") as HTMLElement;
+  rotateButton.addEventListener("click", function() {
+    sendTransitionToCanvas("rotate")
+  });
+
+  const cubeButton = document.getElementById("cube") as HTMLElement;
+  cubeButton.addEventListener("click", function() {
+    sendTransitionToCanvas("cube")
+  });
+
 }
-
-
 
 const imagePaths: string[] = [
   "../../assets/slides/slide1.png",

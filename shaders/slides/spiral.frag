@@ -15,7 +15,7 @@ uniform float uReverse;
 uniform float uSpeed;
 
 const float targetAspect = 16.0 / 9.0;
-const vec3 bgColor = vec3(0.0);
+const vec3 bgColor = vec3(0.2);
 const float borderLength = 0.15;
 
 const float PI = 3.14159265359;
