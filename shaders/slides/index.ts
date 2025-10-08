@@ -28,6 +28,28 @@ function sendTransitionToCanvas(type:string) {
   }
 }
 
+function sendSliderToCanvas(value: string) {
+  const frames = window.parent.frames;
+  for (let i = 0; i < frames.length; i++) {
+    try {
+      frames[i].postMessage({ type: "SLIDER", value: value }, "*")
+    } catch (e) {
+
+    }
+  }
+}
+
+function sendSpeedAmountToUI(value: string) {
+  const frames = window.parent.frames;
+  for (let i = 0; i < frames.length; i++) {
+    try {
+      frames[i].postMessage({ type: "SPEED_AMOUNT", value: value }, "*")
+    } catch (e) {
+
+    }
+  }
+}
+
 function main() {
   if (location.hash === "#ui") {
     const canvas = document.getElementById("canvas") as HTMLCanvasElement;
@@ -132,12 +154,6 @@ function mainCanvas() {
     return;
   }
 
-  // const cubeShader = new Shader(gl, rotateVertexSource, cubeFragmentSource)
-  // if (!cubeShader.valid) {
-  //   console.error("could not make shader cube")
-  //   return;
-  // }
-
   const aPositionAttribute = gl.getAttribLocation(shader.program, "aPosition");
   if (aPositionAttribute < 0) {
     console.error("Could not find attribuites")
@@ -197,21 +213,26 @@ function mainCanvas() {
   let mainImage = 0;
   let startTime = performance.now()
   let reverse = 1.0;
-  let speed = 1.5;
+  let speed = 1.0;
   let reverseOn = false;
 
   window.addEventListener("message", (event) => {
-    if (event.data?.type === "reverseToggle"){
+    if (event.data?.type === "SLIDER") {
+      let x = parseInt(event.data.value)
+      speed = Math.floor(x) / 100.0 * 5.0
+      sendSpeedAmountToUI(speed.toFixed(2))
+    }
+    else if (event.data?.type === "reverseToggle"){
       reverseOn = !reverseOn
       if (transition === ""){
         reverse *= -1
       }
-    } else if (transition === ""){
+    } else if (transition === "" && event.data?.type !== "SPEED_AMOUNT"){
       startTime = performance.now()
       transition = event.data?.type
     }
-  })
 
+  })
 
   const fov = Math.PI / 4;
   const aspect = canvas.width / canvas.height;
@@ -243,6 +264,7 @@ function mainCanvas() {
         transition = ""
         currShader = shader
         mainImage = (mainImage + 1) % 2
+        // speed = speedChange
 
         if (reverseOn){
           reverse = -1.0;
@@ -418,10 +440,6 @@ function drawCube(
   currShader.set1i(gl,"uSlide2",(mainImage + 1) % 2)
 
   currShader.set1f(gl,"uSlide",1.0)
-
-  // gl.drawElements(gl.TRIANGLES, Geometry.SQUARE_INDICES.length, gl.UNSIGNED_SHORT, 0);
-  // gl.bindVertexArray(null)
-
 }
 
 function mainUI() {
@@ -487,6 +505,24 @@ function mainUI() {
   cubeButton.addEventListener("click", function() {
     sendTransitionToCanvas("cube")
   });
+
+  const slider = document.getElementById("slider") as HTMLInputElement;
+  slider.addEventListener("input", function(event) {
+    sendSliderToCanvas(this.value)
+  });
+
+  const speedAmountElement = document.getElementById("speedAmount") as HTMLElement;
+  if (!speedAmountElement) {
+    console.error("cant find speed amount element");
+    return
+  }
+
+  window.addEventListener("message", (event) => {
+    if (event.data?.type === "SPEED_AMOUNT") {
+      const speedAmount = event.data.value
+      speedAmountElement.textContent = "Speed: " + speedAmount
+    }
+  })
 
 }
 
